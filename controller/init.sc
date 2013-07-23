@@ -1,4 +1,13 @@
 (
+  Env(
+    [0,   1,    1,    0,  0],
+    [ 0.4,  0.1,  0.4,  0.1 ],
+    \sin
+    //[ 4,   8,   -8   ]
+  ).plot();
+)
+
+(
 
   var m, mBounds;
 
@@ -57,7 +66,8 @@
       port: 5001
     ));
 
-    organ.doBrightnessTest(5.0);
+    //organ.doBrightnessTest(5.0);
+    organ.doSleepMode();
 
   });
 

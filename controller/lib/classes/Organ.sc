@@ -44,6 +44,45 @@ Organ : Object {
     });
   }
 
+  doSleepMode {
+    var brightnessCycle, brightnessStream, val, test, updateTime, t;
+
+    updateTime = 0.05;
+    t = 0.0;
+    
+    brightnessCycle = Env(
+      [0,   1,    1,    0,  0],
+      [ 0.4,  0.1,  0.4,  0.1 ],
+      \sin
+      //[ 4,   8,   -8   ]
+    );
+    brightnessCycle.duration = 8.0;
+
+    {
+      brightnessStream = brightnessCycle.asStream();
+      t = 0;
+
+      while({ t <= brightnessCycle.totalDuration() }, {
+        val = brightnessStream.next();
+
+        this.tubes.do({
+          arg tube;
+
+          tube.color['r'] = val;
+          tube.color['g'] = val;
+          tube.color['b'] = val;
+
+          tube.update();
+
+        });
+        
+        updateTime.wait();
+        t = t + updateTime;
+      });
+    
+    }.loop();
+  }
+
   doBrightnessTest {
     arg testDuration;
 
