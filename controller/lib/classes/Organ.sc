@@ -44,6 +44,62 @@ Organ : Object {
     });
   }
 
+  doPositionTest {
+    var lightPositionEnv,
+      numSideTubes = 5,
+      centerTubeIndex,
+      leftTubeIndex,
+      rightTubeIndex,
+      tubeSpan = numSideTubes * 2,
+      offset = 0.0;
+
+    lightPositionEnv = Env(
+      [0,   1,    0],
+      [ 0.5,  0.5],
+      \sin
+    );
+
+    centerTubeIndex = 10;
+
+    // animate to the left
+    {
+      while({true}, {
+
+        offset = offset + 0.009;
+        lightPositionEnv.offset = offset;
+
+        // once offset is an entire tube length, we can reset the center
+        if (offset >= (1.0/tubeSpan), {
+          offset = 0.0;
+          centerTubeIndex = centerTubeIndex + 1;
+        });
+
+        leftTubeIndex = centerTubeIndex - numSideTubes;
+        rightTubeIndex = centerTubeIndex + numSideTubes;
+        for(leftTubeIndex, rightTubeIndex, {
+          arg i;
+
+          var relativeTubePosition;
+
+          relativeTubePosition = (i - leftTubeIndex) / tubeSpan;
+
+          this.tubes[i].color['r'] = lightPositionEnv.at(relativeTubePosition);
+          this.tubes[i].color['g'] = lightPositionEnv.at(relativeTubePosition);
+          this.tubes[i].color['b'] = lightPositionEnv.at(relativeTubePosition);
+          this.tubes[i].update();
+
+          0.02.wait();
+
+        });
+      
+      });
+      
+    
+    }.loop();
+
+
+  }
+
   doSleepMode {
     var brightnessCycle, brightnessStream, val, test, updateTime, t;
 

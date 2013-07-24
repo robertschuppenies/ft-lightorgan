@@ -67,7 +67,8 @@
     ));
 
     //organ.doBrightnessTest(5.0);
-    organ.doSleepMode();
+    //organ.doSleepMode();
+    organ.doPositionTest();
 
   });
 
