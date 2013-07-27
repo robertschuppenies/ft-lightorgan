@@ -170,7 +170,7 @@ class Tube
 int[][] g_test_colors = new int[3][g_num_tubes];    // these are initialized to zero
 int g_test_frame = 0;                               // how many graphics frames have passed?
 int g_test_index = 0;
-boolean g_test_run = true;
+boolean g_test_run = false;
 
 // this func sets a certain number of random tubes to random colors
 void initTestColors() 
