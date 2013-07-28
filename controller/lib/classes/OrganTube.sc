@@ -58,7 +58,7 @@ OrganTube : Object {
     );*/
 
     if (tubeIndexIn < 9, {
-      result = tubeIndexIn + 8;
+      result = 8 - tubeIndexIn;
     }, {
       if (tubeIndexIn < 26, {
         result = 50 - (tubeIndexIn - 9);    
@@ -66,6 +66,8 @@ OrganTube : Object {
         result = (tubeIndexIn - 26) + 9;
       });
     });
+
+    ^result;
     
   }
 
@@ -89,7 +91,7 @@ OrganTube : Object {
     });
 
     if (this.organ.arduinoSock != nil, {
-      this.organ.arduinoSock.putAll(Int8Array[255, this.tubeIndex, r, g, b]);
+      this.organ.arduinoSock.putAll(Int8Array[this.arduinoTubeIndex(this.tubeIndex), r, g, b]);
     });
   
   }

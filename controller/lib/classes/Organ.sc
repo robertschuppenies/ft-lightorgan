@@ -61,12 +61,20 @@ Organ : Object {
   }
 
   update {
+    if (this.arduinoSock != nil, {
+      this.arduinoSock.putAll(Int8Array[255]);
+    });
+
     this.tubes.do({
       arg tube;
 
       this.tubePauseTime.wait();
       //("Updating tube " ++ tube.tubeIndex).postln();
       tube.update();
+    });
+
+    if (this.arduinoSock != nil, {
+      this.arduinoSock.putAll(Int8Array[255, 255, 255]);
     });
   }
 

@@ -135,10 +135,10 @@
 
     
     organ = Organ.new((
-      connectToVisualizer: true,
+      connectToVisualizer: false,
       address: "localhost",
       port: 5001,
-      connectToArduino: false,
+      connectToArduino: true,
       arduinoAddress: "/dev/tty.usbmodemfd121",
       arduinoBaudRate: 115200
     ));
