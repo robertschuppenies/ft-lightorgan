@@ -1,12 +1,12 @@
 /*(
   SerialPort.listDevices();
-)
+)*/
 
-(
-  ~arduinoPort = SerialPort.new("/dev/tty.usbmodemfa131", 115200);
-)
+/*(
+  ~arduinoPort = SerialPort.new("/dev/tty.usbmodemfd121", 115200);
+)*/
 
-(
+/*(
   var command, i = 0;
 
   {
@@ -83,7 +83,7 @@
 
   s.quit;
 
-  s.options.inDevice = "Built-in Input";
+  s.options.inDevice = "Built-in Microphone";
   /*s.options.inDevice = "PreSonus FIREPOD (2112)";*/
   /*s.options.inDevice = "SF + 1818";*/
   /*s.options.inDevice = "AudioBox 1818 VSL ";*/
@@ -126,41 +126,24 @@
     outPatch.play();*/
 
 
-    var organ, inputPatch, visualizerDataBuf;
+    var organ, visualizer;
 
     /*outSock = NetAddr.new("192.168.1.110", 5001);
     outSock.sendMsg("/organ/tube", 1, "rgb/", 255, 255, 0);*/
 
-    /*organ = Organ.new((
+    
+    organ = Organ.new((
       address: "localhost",
       port: 5001,
-      arduinoAddress: "/dev/tty.usbmodemfa131",
+      arduinoAddress: "/dev/tty.usbmodemfd121",
       arduinoBaudRate: 115200
     ));
 
     //organ.doBrightnessTest(5.0);
     organ.doSleepMode();
-    //organ.doPositionTest();*/
+    //organ.doPositionTest();
 
-    visualizerDataBuf = Buffer.alloc(Server.default, 1024);
-    "Instr.at(\"VisualizerData\"):".postln;
-    Instr.at("VisualizerData").postln;
-    inputPatch = Patch(Instr.at("VisualizerData"), (
-      outputBuffer: visualizerDataBuf
-    ));
-
-    {
-
-      while({ true }, {
-        
-        "visualizerDataBuf:".postln;
-        visualizerDataBuf.postln;
-
-        0.5.wait();
-      
-      });
-    
-    }.loop();
+    //visualizer = Visualizer.new();
 
 
   });

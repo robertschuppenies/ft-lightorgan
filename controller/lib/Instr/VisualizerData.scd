@@ -6,11 +6,11 @@ Instr("VisualizerData", {
   out = 0;
   in = In.ar(0);
 
-  fftChain = FFT(LocalBuf(1024), in);
+  fftChain = FFT(outputBuffer, in);
 
-  fftChain = PV_Copy(fftChain, outputBuffer);
+  //PV_Copy(fftChain, outputBuffer);
 
-  out;
+  [out, out];
 }, [
   \buffer
 ]);

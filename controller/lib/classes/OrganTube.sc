@@ -51,9 +51,7 @@ OrganTube : Object {
     );*/
 
     //("(" ++ this.color['r'] ++ ", " ++ this.color['g'] ++ ", " ++ this.color['b'] ++ ")").postln();
-    if (this.tubeIndex % 2 == 0, {
-      this.organ.arduinoSock.putAll(Int8Array[255, 50 - this.tubeIndex, r, g, b]);
-    });
+    this.organ.arduinoSock.putAll(Int8Array[255, this.tubeIndex, r, g, b]);
   
   }
 }

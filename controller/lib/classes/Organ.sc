@@ -13,7 +13,7 @@ Organ : Object {
 
     this.brightnessTestIsOn = false;
 
-    this.tubePauseTime = 0.007;
+    this.tubePauseTime = 0.009;
 
     this.oscSock = NetAddr.new(initParams['address'], initParams['port']);
     this.arduinoSock = SerialPort.new(initParams['arduinoAddress'], initParams['arduinoBaudRate']);
@@ -108,7 +108,13 @@ Organ : Object {
   }
 
   doSleepMode {
-    var brightnessCycle, brightnessStream, val, test, updateTime, t;
+    var brightnessCycle,
+      brightnessStream,
+      val,
+      test,
+      updateTime,
+      t,
+      currentLED;
 
     "Organ: doSleepMode".postln();
 
@@ -126,6 +132,7 @@ Organ : Object {
     {
       brightnessStream = brightnessCycle.asStream();
       t = 0;
+      currentLED = ['r', 'g', 'b'].choose();
 
       while({ t <= brightnessCycle.totalDuration() }, {
         val = brightnessStream.next();
@@ -133,9 +140,7 @@ Organ : Object {
         this.tubes.do({
           arg tube;
 
-          tube.color['r'] = val;
-          tube.color['g'] = val;
-          tube.color['b'] = val;
+          tube.color[currentLED] = val;
 
         });
 
