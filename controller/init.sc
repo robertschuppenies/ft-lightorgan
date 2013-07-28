@@ -146,9 +146,11 @@
     //organ.doBrightnessTest(5.0);
     //organ.doSleepMode();
     //organ.doPositionTest();
-    organ.doTubeIndexTest();
+    //organ.doTubeIndexTest();
 
-    visualizer = Visualizer.new();
+    visualizer = Visualizer.new((
+      organ: organ
+    ));
 
 
   });
