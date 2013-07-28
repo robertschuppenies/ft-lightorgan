@@ -15,8 +15,18 @@ Organ : Object {
 
     this.tubePauseTime = 0.009;
 
-    this.oscSock = NetAddr.new(initParams['address'], initParams['port']);
-    this.arduinoSock = SerialPort.new(initParams['arduinoAddress'], initParams['arduinoBaudRate']);
+    this.oscSock = nil;
+    if (initParams['connectToVisualizer'], {
+      this.oscSock = NetAddr.new(initParams['address'], initParams['port']);
+    });
+
+    this.arduinoSock = nil;
+    if (initParams['connectToArduino'], {
+      this.arduinoSock = SerialPort.new(
+        initParams['arduinoAddress'],
+        initParams['arduinoBaudRate']
+      );
+    });
 
     // initialize organ tubes
 
@@ -32,13 +42,22 @@ Organ : Object {
 
     });
 
-
-    "Organ: Initial update...".postln();
-    this.update();
   }
 
   updateTime {
     ^(this.tubePauseTime * this.tubes.size())
+  }
+
+  allLightsOff {
+    "Organ: All lights off!".postln();
+    this.tubes.do({
+      arg tube;
+      tube.color['r'] = 0;
+      tube.color['g'] = 0;
+      tube.color['b'] = 0;
+    });
+
+    this.update();
   }
 
   update {
@@ -149,6 +168,24 @@ Organ : Object {
       });
     
     }.loop();
+  }
+
+  doTubeIndexTest {
+    var i, led;
+
+    "tubeIndexTest!".postln();
+
+    {
+      this.allLightsOff();
+      i = 0;
+      led = ['r', 'g', 'b'].choose();
+      while({ i < this.tubes.size() }, {
+        this.tubes[i].color[led] = 100;
+        this.update();
+        i = i + 1;
+      });
+    }.loop();
+  
   }
 
   doBrightnessTest {

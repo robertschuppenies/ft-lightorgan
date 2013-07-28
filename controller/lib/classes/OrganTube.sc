@@ -27,7 +27,9 @@ OrganTube : Object {
     arg tubeIndexIn;
     var arduinoTubeIndexMap, result;
 
-    /*arduinoTubeIndexMap = (
+    /*
+    map = [0, 2, 3, 4]
+    arduinoTubeIndexMap = (
       0: 8,
       1: 7,
       2: 6,
@@ -75,17 +77,20 @@ OrganTube : Object {
     g = (this.color['g'] * 254).round().asInteger();
     b = (this.color['b'] * 254).round().asInteger();
 
-    /*this.organ.oscSock.sendMsg(
-      "/organ/tube",
-      this.tubeIndex,
-      "rgb/",
-      r,
-      g,
-      b
-    );*/
+    if (this.organ.oscSock != nil, {
+      this.organ.oscSock.sendMsg(
+        "/organ/tube",
+        this.tubeIndex,
+        "rgb/",
+        r,
+        g,
+        b
+      );
+    });
 
-    //("(" ++ this.color['r'] ++ ", " ++ this.color['g'] ++ ", " ++ this.color['b'] ++ ")").postln();
-    this.organ.arduinoSock.putAll(Int8Array[255, this.tubeIndex, r, g, b]);
+    if (this.organ.arduinoSock != nil, {
+      this.organ.arduinoSock.putAll(Int8Array[255, this.tubeIndex, r, g, b]);
+    });
   
   }
 }

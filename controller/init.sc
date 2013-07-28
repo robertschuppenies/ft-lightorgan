@@ -134,16 +134,19 @@
     outSock.sendMsg("/organ/tube", 1, "rgb/", 255, 255, 0);*/
 
     
-    /*organ = Organ.new((
+    organ = Organ.new((
+      connectToVisualizer: true,
       address: "localhost",
       port: 5001,
+      connectToArduino: false,
       arduinoAddress: "/dev/tty.usbmodemfd121",
       arduinoBaudRate: 115200
     ));
 
     //organ.doBrightnessTest(5.0);
-    organ.doSleepMode();
-    //organ.doPositionTest();*/
+    //organ.doSleepMode();
+    //organ.doPositionTest();
+    organ.doTubeIndexTest();
 
     visualizer = Visualizer.new();
 
