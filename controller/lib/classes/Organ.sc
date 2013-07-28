@@ -1,6 +1,6 @@
 Organ : Object {
 
-  var <>outSock, <>tubes, <>brightnessTestIsOn;
+  var <>arduinoSock, <>oscSock, <>tubes, <>brightnessTestIsOn, <>tubePauseTime;
 
   *new {
     arg initParams;
@@ -13,7 +13,10 @@ Organ : Object {
 
     this.brightnessTestIsOn = false;
 
-    this.outSock = NetAddr.new(initParams['address'], initParams['port']);
+    this.tubePauseTime = 0.007;
+
+    this.oscSock = NetAddr.new(initParams['address'], initParams['port']);
+    this.arduinoSock = SerialPort.new(initParams['arduinoAddress'], initParams['arduinoBaudRate']);
 
     // initialize organ tubes
 
@@ -21,9 +24,6 @@ Organ : Object {
 
     for(0, 50, {
       arg i;
-
-
-
       tube = OrganTube.new((
         index: i,
         organ: this
@@ -33,13 +33,20 @@ Organ : Object {
     });
 
 
+    "Organ: Initial update...".postln();
     this.update();
+  }
+
+  updateTime {
+    ^(this.tubePauseTime * this.tubes.size())
   }
 
   update {
     this.tubes.do({
       arg tube;
 
+      this.tubePauseTime.wait();
+      //("Updating tube " ++ tube.tubeIndex).postln();
       tube.update();
     });
   }
@@ -103,7 +110,9 @@ Organ : Object {
   doSleepMode {
     var brightnessCycle, brightnessStream, val, test, updateTime, t;
 
-    updateTime = 0.05;
+    "Organ: doSleepMode".postln();
+
+    updateTime = this.updateTime();
     t = 0.0;
     
     brightnessCycle = Env(
@@ -128,11 +137,9 @@ Organ : Object {
           tube.color['g'] = val;
           tube.color['b'] = val;
 
-          tube.update();
-
         });
-        
-        updateTime.wait();
+
+        this.update();
         t = t + updateTime;
       });
     

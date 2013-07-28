@@ -1,10 +1,80 @@
 (
+  SerialPort.listDevices();
+)
+
+(
+  ~arduinoPort = SerialPort.new("/dev/tty.usbmodemfa131", 115200);
+)
+
+(
+  var command, i = 0;
+
+  {
+
+    while({ true }, {
+     
+      command = Int8Array[255, i, 254.rand(), 254.rand(), 254.rand()];
+
+      ~arduinoPort.putAll(command);
+
+      i = i + 1;
+
+      if (i > 50, {
+        i = 0;    
+      });
+
+      0.007.wait();
+    
+    });
+
+    
+  }.fork();
+
+
+)
+
+(
+  var command;
+
+  {
+
+    while({true}, {
+      "blink on".postln();
+      
+      command = Int8Array[0, 1, 0, 0, 0];
+
+      ~arduinoPort.putAll(command);
+
+      1.0.wait();
+
+      "blink off".postln();
+
+      command = Int8Array[0, 1, 100, 100, 100];
+
+      ~arduinoPort.putAll(command);
+
+      1.0.wait();
+    
+    });
+
+    
+  }.fork();
+
+
+)
+
+
+(
   Env(
     [0,   1,    1,    0,  0],
     [ 0.4,  0.1,  0.4,  0.1 ],
     \sin
     //[ 4,   8,   -8   ]
   ).plot();
+)
+
+(
+  Quarks.gui();
 )
 
 (
@@ -62,13 +132,15 @@
     outSock.sendMsg("/organ/tube", 1, "rgb/", 255, 255, 0);*/
 
     organ = Organ.new((
-      address: "192.168.1.110",
-      port: 5001
+      address: "localhost",
+      port: 5001,
+      arduinoAddress: "/dev/tty.usbmodemfa131",
+      arduinoBaudRate: 115200
     ));
 
     //organ.doBrightnessTest(5.0);
-    //organ.doSleepMode();
-    organ.doPositionTest();
+    organ.doSleepMode();
+    //organ.doPositionTest();
 
   });
 
