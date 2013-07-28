@@ -96,6 +96,8 @@
   /*s.options.blockSize = 8;*/
   s.boot();
 
+  m = s.meter();
+
 
   /*mBounds = m.window.bounds;*/
   /*mBounds.left = 1680;
@@ -132,7 +134,7 @@
     outSock.sendMsg("/organ/tube", 1, "rgb/", 255, 255, 0);*/
 
     
-    organ = Organ.new((
+    /*organ = Organ.new((
       address: "localhost",
       port: 5001,
       arduinoAddress: "/dev/tty.usbmodemfd121",
@@ -141,9 +143,9 @@
 
     //organ.doBrightnessTest(5.0);
     organ.doSleepMode();
-    //organ.doPositionTest();
+    //organ.doPositionTest();*/
 
-    //visualizer = Visualizer.new();
+    visualizer = Visualizer.new();
 
 
   });

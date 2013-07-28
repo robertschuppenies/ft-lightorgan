@@ -26,7 +26,7 @@ Visualizer : Object {
 
       while({ true }, {
         
-        visualizerDataBuf.getn(0, 1024, {
+        visualizerDataBuf.getn(0, fftSize, {
           arg data;
           var normalizedData = data.normalize(),
             z, x;

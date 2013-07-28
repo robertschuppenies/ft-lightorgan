@@ -23,15 +23,49 @@ OrganTube : Object {
 
   }
 
-  /*arduinoTubeIndex {
+  arduinoTubeIndex {
     arg tubeIndexIn;
-    var arduinoTubeIndexOut;
+    var arduinoTubeIndexMap, result;
 
-    if (tubeIndexIn % 2 == 0, {
-      arduinoTubeIndexOut
+    /*arduinoTubeIndexMap = (
+      0: 8,
+      1: 7,
+      2: 6,
+      3: 5,
+      4: 4,
+      5: 3,
+      6: 2,
+      7: 1,
+      8: 0,
+      9: 50,
+      10: 49,
+      11: 48,
+      12: 47,
+      13: 46,
+      14: 45,
+      15: 44,
+      16: 43,
+      17: 42,
+      18: 41,
+      ...
+      26: 9,
+      27: 10,
+      28: 11,
+      29: 12
+
+    );*/
+
+    if (tubeIndexIn < 9, {
+      result = tubeIndexIn + 8;
+    }, {
+      if (tubeIndexIn < 26, {
+        result = 50 - (tubeIndexIn - 9);    
+      }, {
+        result = (tubeIndexIn - 26) + 9;
+      });
     });
     
-  }*/
+  }
 
   update {
 
