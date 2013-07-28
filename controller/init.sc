@@ -83,7 +83,8 @@
 
   s.quit;
 
-  s.options.inDevice = "Built-in Microphone";
+  //s.options.inDevice = "Built-in Microphone";
+  s.options.inDevice = "JackRouter";
   /*s.options.inDevice = "PreSonus FIREPOD (2112)";*/
   /*s.options.inDevice = "SF + 1818";*/
   /*s.options.inDevice = "AudioBox 1818 VSL ";*/
@@ -92,7 +93,7 @@
 
   /*s.options.memSize = 262144; // 256 Mb*/
   /*s.options.outDevice = "Soundflower (64ch)";*/
-  s.options.sampleRate = 48000;
+  //s.options.sampleRate = 48000;
   /*s.options.blockSize = 8;*/
   s.boot();
 
