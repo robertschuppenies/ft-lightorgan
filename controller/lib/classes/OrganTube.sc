@@ -11,7 +11,7 @@ OrganTube : Object {
   init {
     arg initParams;
 
-    this.tubeIndex = initParams['index'];
+    this.tubeIndex = initParams['index'].asInteger();
 
     this.organ = initParams['organ'];
 
@@ -23,22 +23,37 @@ OrganTube : Object {
 
   }
 
+  /*arduinoTubeIndex {
+    arg tubeIndexIn;
+    var arduinoTubeIndexOut;
+
+    if (tubeIndexIn % 2 == 0, {
+      arduinoTubeIndexOut
+    });
+    
+  }*/
+
   update {
 
     var r, g, b;
 
-    r = (this.color['r'] * 255).round().asInteger();
-    g = (this.color['g'] * 255).round().asInteger();
-    b = (this.color['b'] * 255).round().asInteger();
+    r = (this.color['r'] * 254).round().asInteger();
+    g = (this.color['g'] * 254).round().asInteger();
+    b = (this.color['b'] * 254).round().asInteger();
 
-    this.organ.outSock.sendMsg(
+    /*this.organ.oscSock.sendMsg(
       "/organ/tube",
       this.tubeIndex,
       "rgb/",
       r,
       g,
       b
-    );
+    );*/
+
+    //("(" ++ this.color['r'] ++ ", " ++ this.color['g'] ++ ", " ++ this.color['b'] ++ ")").postln();
+    if (this.tubeIndex % 2 == 0, {
+      this.organ.arduinoSock.putAll(Int8Array[255, 50 - this.tubeIndex, r, g, b]);
+    });
   
   }
 }

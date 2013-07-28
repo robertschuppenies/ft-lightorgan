@@ -1,3 +1,69 @@
+/*(
+  SerialPort.listDevices();
+)
+
+(
+  ~arduinoPort = SerialPort.new("/dev/tty.usbmodemfa131", 115200);
+)
+
+(
+  var command, i = 0;
+
+  {
+
+    while({ true }, {
+     
+      command = Int8Array[255, i, 254.rand(), 254.rand(), 254.rand()];
+
+      ~arduinoPort.putAll(command);
+
+      i = i + 1;
+
+      if (i > 50, {
+        i = 0;    
+      });
+
+      0.007.wait();
+    
+    });
+
+    
+  }.fork();
+
+
+)
+
+(
+  var command;
+
+  {
+
+    while({true}, {
+      "blink on".postln();
+      
+      command = Int8Array[0, 1, 0, 0, 0];
+
+      ~arduinoPort.putAll(command);
+
+      1.0.wait();
+
+      "blink off".postln();
+
+      command = Int8Array[0, 1, 100, 100, 100];
+
+      ~arduinoPort.putAll(command);
+
+      1.0.wait();
+    
+    });
+
+    
+  }.fork();
+
+
+)
+
+
 (
   Env(
     [0,   1,    1,    0,  0],
@@ -6,6 +72,10 @@
     //[ 4,   8,   -8   ]
   ).plot();
 )
+
+(
+  Quarks.gui();
+)*/
 
 (
 
@@ -35,8 +105,8 @@
   
   /*m.window.setTopLeftBounds(mBounds);*/
 
-  /*Instr.dir = "lib/".resolveRelative();
-  Instr.loadAll();*/
+  Instr.dir = "lib/".resolveRelative();
+  Instr.loadAll();
 
   s.doWhenBooted({
     /*var outPatch;
@@ -56,19 +126,42 @@
     outPatch.play();*/
 
 
-    var organ;
+    var organ, inputPatch, visualizerDataBuf;
 
     /*outSock = NetAddr.new("192.168.1.110", 5001);
     outSock.sendMsg("/organ/tube", 1, "rgb/", 255, 255, 0);*/
 
-    organ = Organ.new((
-      address: "192.168.1.110",
-      port: 5001
+    /*organ = Organ.new((
+      address: "localhost",
+      port: 5001,
+      arduinoAddress: "/dev/tty.usbmodemfa131",
+      arduinoBaudRate: 115200
     ));
 
     //organ.doBrightnessTest(5.0);
-    //organ.doSleepMode();
-    organ.doPositionTest();
+    organ.doSleepMode();
+    //organ.doPositionTest();*/
+
+    visualizerDataBuf = Buffer.alloc(Server.default, 1024);
+    "Instr.at(\"VisualizerData\"):".postln;
+    Instr.at("VisualizerData").postln;
+    inputPatch = Patch(Instr.at("VisualizerData"), (
+      outputBuffer: visualizerDataBuf
+    ));
+
+    {
+
+      while({ true }, {
+        
+        "visualizerDataBuf:".postln;
+        visualizerDataBuf.postln;
+
+        0.5.wait();
+      
+      });
+    
+    }.loop();
+
 
   });
 
