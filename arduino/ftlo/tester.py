@@ -16,15 +16,13 @@ DEFAULT_BAUD_RATE = 115200
 # Byte value used as a delimiter between serial packages.
 SERIAL_DELIM = chr(255)
 # Time to wait between sending new data packages.
-SERIAL_WRITE_SLEEP = 0.0008
+SERIAL_WRITE_SLEEP = 0.0007
 
 # Number of steps from lowest to maximum brightness.
 BRIGHTNESS_STEPS = 30
 # Maximum possible color value (basically one below maximum possible allowed by
 # LED strip since that value is used as a delimiter).
 MAX_COLOR_VALUE = 254
-
-
 
 
 def set_color_units(unit_values, port, baud_rate):
@@ -74,9 +72,9 @@ def rotate_color_brightness():
         for color_step in color_steps:
             if color in [0, 3]:
                 red = max(0, 254-color_step*step_size)
-            elif color in [1, 3]:
+            if color in [1, 3]:
                 green = max(0, 254-color_step*step_size)
-            elif color in [2, 3]:
+            if color in [2, 3]:
                 blue = max(0, 254-color_step*step_size)
             unit_values = []
             for unit in range(0, UNITS, 1):
