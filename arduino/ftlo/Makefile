@@ -1,3 +1,4 @@
+# BOARD_TAG = mega2560
 BOARD_TAG = uno
 ARDUINO_PORT = $(ARDUINO_MAKE_PORT)
 ARDUINO_LIBS = Adafruit_NeoPixel
