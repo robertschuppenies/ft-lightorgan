@@ -1,6 +1,6 @@
 Organ : Object {
 
-  var <>outSock, <>tubes, <>brightnessTestIsOn;
+  var <>arduinoSock, <>oscSock, <>tubes, <>brightnessTestIsOn, <>tubePauseTime;
 
   *new {
     arg initParams;
@@ -13,7 +13,20 @@ Organ : Object {
 
     this.brightnessTestIsOn = false;
 
-    this.outSock = NetAddr.new(initParams['address'], initParams['port']);
+    this.tubePauseTime = 0.009;
+
+    this.oscSock = nil;
+    if (initParams['connectToVisualizer'], {
+      this.oscSock = NetAddr.new(initParams['address'], initParams['port']);
+    });
+
+    this.arduinoSock = nil;
+    if (initParams['connectToArduino'], {
+      this.arduinoSock = SerialPort.new(
+        initParams['arduinoAddress'],
+        initParams['arduinoBaudRate']
+      );
+    });
 
     // initialize organ tubes
 
@@ -21,9 +34,6 @@ Organ : Object {
 
     for(0, 50, {
       arg i;
-
-
-
       tube = OrganTube.new((
         index: i,
         organ: this
@@ -32,15 +42,39 @@ Organ : Object {
 
     });
 
+  }
+
+  updateTime {
+    ^(this.tubePauseTime * this.tubes.size())
+  }
+
+  allLightsOff {
+    "Organ: All lights off!".postln();
+    this.tubes.do({
+      arg tube;
+      tube.color['r'] = 0;
+      tube.color['g'] = 0;
+      tube.color['b'] = 0;
+    });
 
     this.update();
   }
 
   update {
+    if (this.arduinoSock != nil, {
+      this.arduinoSock.putAll(Int8Array[255]);
+    });
+
     this.tubes.do({
       arg tube;
 
+      this.tubePauseTime.wait();
+      //("Updating tube " ++ tube.tubeIndex).postln();
       tube.update();
+    });
+
+    if (this.arduinoSock != nil, {
+      this.arduinoSock.putAll(Int8Array[255, 255, 255]);
     });
   }
 
@@ -101,9 +135,17 @@ Organ : Object {
   }
 
   doSleepMode {
-    var brightnessCycle, brightnessStream, val, test, updateTime, t;
+    var brightnessCycle,
+      brightnessStream,
+      val,
+      test,
+      updateTime,
+      t,
+      currentLED;
 
-    updateTime = 0.05;
+    "Organ: doSleepMode".postln();
+
+    updateTime = this.updateTime();
     t = 0.0;
     
     brightnessCycle = Env(
@@ -117,6 +159,7 @@ Organ : Object {
     {
       brightnessStream = brightnessCycle.asStream();
       t = 0;
+      currentLED = ['r', 'g', 'b'].choose();
 
       while({ t <= brightnessCycle.totalDuration() }, {
         val = brightnessStream.next();
@@ -124,19 +167,33 @@ Organ : Object {
         this.tubes.do({
           arg tube;
 
-          tube.color['r'] = val;
-          tube.color['g'] = val;
-          tube.color['b'] = val;
-
-          tube.update();
+          tube.color[currentLED] = val;
 
         });
-        
-        updateTime.wait();
+
+        this.update();
         t = t + updateTime;
       });
     
     }.loop();
+  }
+
+  doTubeIndexTest {
+    var i, led;
+
+    "tubeIndexTest!".postln();
+
+    {
+      this.allLightsOff();
+      i = 0;
+      led = ['r', 'g', 'b'].choose();
+      while({ i < this.tubes.size() }, {
+        this.tubes[i].color[led] = 100;
+        this.update();
+        i = i + 1;
+      });
+    }.loop();
+  
   }
 
   doBrightnessTest {
