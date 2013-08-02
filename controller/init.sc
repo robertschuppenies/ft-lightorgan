@@ -1,3 +1,5 @@
+//Quarks.gui()
+
 /*(
   SerialPort.listDevices();
 )*/
@@ -83,8 +85,8 @@
 
   s.quit;
 
-  //s.options.inDevice = "Built-in Microphone";
-  s.options.inDevice = "JackRouter";
+  s.options.inDevice = "Built-in Microphone";
+  //s.options.inDevice = "JackRouter";
   /*s.options.inDevice = "PreSonus FIREPOD (2112)";*/
   /*s.options.inDevice = "SF + 1818";*/
   /*s.options.inDevice = "AudioBox 1818 VSL ";*/
@@ -136,10 +138,10 @@
 
     
     organ = Organ.new((
-      connectToVisualizer: false,
+      connectToVisualizer: true,
       address: "localhost",
       port: 5001,
-      connectToArduino: true,
+      connectToArduino: false,
       arduinoAddress: "/dev/tty.usbmodemfd121",
       arduinoBaudRate: 115200
     ));
