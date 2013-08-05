@@ -1,7 +1,16 @@
 Instr("VisualizerData", {
-  arg outputBuffer, onsetDetectorBus;
+  arg outputBuffer, loudnessBus;
   
-  var in, fftChain, out, onsetDetector;
+  var in,
+    fftChain,
+    out,
+    onsetDetector,
+    ambNoiseLevel,
+    loudness,
+    loudEventDetector;
+
+  "loudnessBus:".postln;
+  loudnessBus.postln;
 
   out = Silence.ar();
   in = SoundIn.ar(0);
@@ -15,17 +24,24 @@ Instr("VisualizerData", {
   /**
    *  Onset detection
    **/
-  onsetDetector = Coyote.kr(
+  /*onsetDetector = Coyote.kr(
     in,
-    //trackFall: 0.3
+    trackFall: 0.1
     //slowLag: 0.1,
-    fastMul: 0.8,
-    thresh: -18.0.dbamp(),
-    minDur: 0.02
+    //fastMul: 0.8,
+    //thresh: -18.0.dbamp(),
+    //minDur: 0.9
   );
   //onsetDetector = Onsets.kr(fftChain);
   onsetDetector.poll();
-  ReplaceOut.kr(onsetDetectorBus, onsetDetector);
+  ReplaceOut.kr(onsetDetectorBus, onsetDetector);*/
+
+  /*onsetDetector = Onsets.kr(fftChain);
+  onsetDetector.poll();*/
+
+  ambNoiseLevel = 5.0;
+  loudness = Integrator.kr(Loudness.kr(fftChain), 0.999);
+  Out.kr(loudnessBus, loudness);
 
   out;
 }, [
