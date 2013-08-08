@@ -52,9 +52,9 @@ Organ : Object {
     "Organ: All lights off!".postln();
     this.tubes.do({
       arg tube;
-      tube.color['r'] = 0;
-      tube.color['g'] = 0;
-      tube.color['b'] = 0;
+      tube.color.red = 0;
+      tube.color.green = 0;
+      tube.color.blue = 0;
     });
 
     this.update();
@@ -117,9 +117,9 @@ Organ : Object {
 
           relativeTubePosition = (i - leftTubeIndex) / tubeSpan;
 
-          this.tubes[i].color['r'] = lightPositionEnv.at(relativeTubePosition);
-          this.tubes[i].color['g'] = lightPositionEnv.at(relativeTubePosition);
-          this.tubes[i].color['b'] = lightPositionEnv.at(relativeTubePosition);
+          this.tubes[i].color.red = lightPositionEnv.at(relativeTubePosition);
+          this.tubes[i].color.green = lightPositionEnv.at(relativeTubePosition);
+          this.tubes[i].color.blue = lightPositionEnv.at(relativeTubePosition);
           this.tubes[i].update();
 
           0.02.wait();
@@ -141,7 +141,9 @@ Organ : Object {
       test,
       updateTime,
       t,
-      currentLED;
+      breathHue,
+      breathSaturation,
+      breathColor;
 
     "Organ: doSleepMode".postln();
 
@@ -159,15 +161,18 @@ Organ : Object {
     {
       brightnessStream = brightnessCycle.asStream();
       t = 0;
-      currentLED = ['r', 'g', 'b'].choose();
+      breathHue = 0.999.rand();
+      breathSaturation = 0.8;
 
       while({ t <= brightnessCycle.totalDuration() }, {
         val = brightnessStream.next();
 
+        breathColor = Color.hsv(breathHue, breathSaturation, val);
+
         this.tubes.do({
           arg tube;
 
-          tube.color[currentLED] = val;
+          tube.color = breathColor;
 
         });
 
@@ -179,16 +184,15 @@ Organ : Object {
   }
 
   doTubeIndexTest {
-    var i, led;
+    var i, ledName, led;
 
     "tubeIndexTest!".postln();
 
     {
       this.allLightsOff();
       i = 0;
-      led = ['r', 'g', 'b'].choose();
       while({ i < this.tubes.size() }, {
-        this.tubes[i].color[led] = 100;
+        led = this.tubes[i].color.red = 1.0;
         this.update();
         i = i + 1;
       });
@@ -222,9 +226,9 @@ Organ : Object {
       this.tubes.do({
         arg tube;
 
-        tube.color['r'] = sineVal;
-        tube.color['g'] = sineVal;
-        tube.color['b'] = sineVal;
+        tube.color.red = sineVal;
+        tube.color.green = sineVal;
+        tube.color.blue = sineVal;
 
         tube.update();
 

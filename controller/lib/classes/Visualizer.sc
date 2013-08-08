@@ -78,8 +78,8 @@ Visualizer : Object {
         pitchMagnitudes.do({
           arg pitchMag, i;
 
-          this.organ.tubes[i].color['r'] = pitchMag;
-          this.organ.tubes[26 + i].color['b'] = pitchMag;
+          this.organ.tubes[i].color.red = pitchMag;
+          this.organ.tubes[26 + i].color.blue = pitchMag;
 
         });
 
