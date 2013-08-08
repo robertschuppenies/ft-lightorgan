@@ -1,5 +1,5 @@
 Instr("VisualizerData", {
-  arg outputBuffer, loudnessBus;
+  arg outputBuffer, loudnessBus, hueModulatorBus;
   
   var in,
     fftChain,
@@ -9,7 +9,8 @@ Instr("VisualizerData", {
     loudness,
     loudEventDetector,
     tempBuf,
-    fftOut;
+    fftOut,
+    hueModulator;
 
   out = Silence.ar();
   in = SoundIn.ar(0);
@@ -42,10 +43,13 @@ Instr("VisualizerData", {
   ambNoiseLevel = 5.0;
   //loudness = Integrator.kr(Loudness.kr(fftChain), 0.9);
   loudness = EnvDetect.ar(in, attack: 0.1, release: 1.0);
+  hueModulator = SinOsc.kr(loudness).range(0, 1);
+  Out.kr(hueModulatorBus, hueModulator);
   Out.kr(loudnessBus, loudness);
 
   out;
 }, [
   \buffer,
+  \controlbus,
   \controlbus
 ]);

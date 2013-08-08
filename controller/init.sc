@@ -151,6 +151,8 @@
     //organ.doPositionTest();
     //organ.doTubeIndexTest();
 
+    organ.allLightsOff();
+
     visualizer = Visualizer.new((
       organ: organ
     ));
