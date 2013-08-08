@@ -7,18 +7,18 @@ Instr("VisualizerData", {
     onsetDetector,
     ambNoiseLevel,
     loudness,
-    loudEventDetector;
-
-  "loudnessBus:".postln;
-  loudnessBus.postln;
+    loudEventDetector,
+    tempBuf,
+    fftOut;
 
   out = Silence.ar();
   in = SoundIn.ar(0);
 
-  fftChain = FFT(outputBuffer, in);
-  //fftChain = PV_MagSmooth(outputBuffer, 0.01);
-
-  //PV_Copy(fftChain, outputBuffer);
+  tempBuf = LocalBuf(outputBuffer.numFrames);
+  fftChain = FFT(tempBuf, in);
+  fftChain = PV_MagSmooth(fftChain, 0.9);
+  fftOut = IFFT(fftChain);
+  fftChain = FFT(outputBuffer, fftOut);          // put it back into normal fft form
 
 
   /**

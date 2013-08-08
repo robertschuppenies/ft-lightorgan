@@ -32,7 +32,7 @@ Organ : Object {
 
     this.tubes = [];
 
-    for(0, 50, {
+    for(0, 51, {
       arg i;
       tube = OrganTube.new((
         index: i,
