@@ -40,7 +40,8 @@ Instr("VisualizerData", {
   onsetDetector.poll();*/
 
   ambNoiseLevel = 5.0;
-  loudness = Integrator.kr(Loudness.kr(fftChain), 0.999);
+  //loudness = Integrator.kr(Loudness.kr(fftChain), 0.9);
+  loudness = EnvDetect.ar(in, attack: 0.1, release: 1.0);
   Out.kr(loudnessBus, loudness);
 
   out;
