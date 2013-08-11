@@ -13,7 +13,7 @@ Organ : Object {
 
     this.brightnessTestIsOn = false;
 
-    this.tubePauseTime = 0.007;
+    this.tubePauseTime = 0.005;
     //this.tubePauseTime = 0.0001;
 
     this.oscSock = nil;
@@ -196,11 +196,9 @@ Organ : Object {
           tube.brightness = brightness;
 
         });
-
-        this.update();
         t = t + updateTime;
+        updateTime.wait();
       });
-    
     }).loop();
 
     SystemClock.play(this.sleepModeAnimator);

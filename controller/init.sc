@@ -143,6 +143,10 @@
       arduinoAddress: "/dev/ttyACM1",
       arduinoBaudRate: 115200
     ));
+
+    "connected!".postln();
+    5.0.wait();
+
     organ.allLightsOff();
 
     //organ.doBrightnessTest(5.0);
