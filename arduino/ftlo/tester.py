@@ -17,7 +17,9 @@ DEFAULT_BAUD_RATE = 115200
 # Byte value used as a delimiter between serial packages.
 SERIAL_DELIM = chr(255)
 # Time to wait between sending new data packages.
-SERIAL_WRITE_SLEEP = 0.0007
+SERIAL_UNIT_WRITE_SLEEP = 0.0007
+# Time to wait between sending new data packages.
+SERIAL_FLUSH_SLEEP = 0.04
 
 # Number of steps from lowest to maximum brightness.
 BRIGHTNESS_STEPS = 30
@@ -43,7 +45,7 @@ def _init_serial(port, baud_rate):
 
 
 def _send_unit_data(unit, red, green, blue):
-    time.sleep(SERIAL_WRITE_SLEEP)
+    time.sleep(SERIAL_UNIT_WRITE_SLEEP)
     ser.write(SERIAL_DELIM)
     # print unit, red, green, blue
     ser.write(chr(unit) + chr(red) + chr(green) + chr(blue))
@@ -52,7 +54,7 @@ def _send_unit_data(unit, red, green, blue):
 def _send_set_color_set():
     # Flush out old data.
     ser.write(SERIAL_DELIM*6)
-    time.sleep(0.05)
+    time.sleep(SERIAL_FLUSH_SLEEP)
 
 
 def set_color_units(ser, unit_values):
