@@ -15,11 +15,7 @@ OrganTube : Object {
 
     this.organ = initParams['organ'];
 
-    this.color = (
-      r: 0.0,
-      g: 0.0,
-      b: 0.0
-    )
+    this.color = Color.new();
 
   }
 
@@ -75,9 +71,9 @@ OrganTube : Object {
 
     var r, g, b;
 
-    r = (this.color['r'] * 254).round().asInteger();
-    g = (this.color['g'] * 254).round().asInteger();
-    b = (this.color['b'] * 254).round().asInteger();
+    r = (this.color.red() * 254).round().asInteger();
+    g = (this.color.green() * 254).round().asInteger();
+    b = (this.color.blue() * 254).round().asInteger();
 
     if (this.organ.oscSock != nil, {
       this.organ.oscSock.sendMsg(
