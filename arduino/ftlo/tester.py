@@ -6,7 +6,7 @@ import serial
 import sys
 import time
 
-USAGE = 'usage: %prog [options] unit red, green blue'
+USAGE = 'usage: %prog [options]'
 
 UNITS = 51
 
@@ -88,13 +88,14 @@ def rotate_color_brightness():
 
 if __name__ == '__main__':
     parser = optparse.OptionParser(usage=USAGE)
-    parser.add_option("-u", "--unit", dest="unit", help="unit to set")
+    parser.add_option("-u", "--unit", dest="unit", help="unit to set",
+                      type="int")
     parser.add_option("-r", "--red", dest="red", help="red color value",
-                      default=0)
+                      default=0, type="int")
     parser.add_option("-g", "--green", dest="green", help="green color value",
-                      default=0)
+                      default=0, type="int")
     parser.add_option("-b", "--blue", dest="blue", help="blue color value",
-                      default=0)
+                      default=0, type="int")
     parser.add_option("-p", "--port", dest="port", help="port to use",
                       default=DEFAULT_PORT)
     parser.add_option("-a", "--rate", dest="rate", help="baud rate to use",
@@ -108,7 +109,8 @@ if __name__ == '__main__':
 
     if options.unit:
         # If user has declared a unit, set only that unit.
-        set_color(options.unit, options.red, options.green, options.blue,
+        unit_values = [[options.unit, options.red, options.green, options.blue]]
+        set_color_units(unit_values,
                   options.port, options.rate)
     else:
         # Otherwise run color demo.
