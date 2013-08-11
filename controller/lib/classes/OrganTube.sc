@@ -1,6 +1,9 @@
 OrganTube : Object {
   var <>tubeIndex,
     <>color,
+    <>lastSentColor,
+    <>brightness,
+    <>lastSentBrightness,
     <>organ;
 
   *new {
@@ -16,7 +19,12 @@ OrganTube : Object {
     this.organ = initParams['organ'];
 
     this.color = Color.new();
+    this.brightness = 0.0;
 
+    // set last sent color to white just so messages from first update
+    // will be sent
+    this.lastSentColor = Color.new(1.0, 1.0, 1.0);
+    this.lastSentBrightness = 1.0;
   }
 
   arduinoTubeIndex {
@@ -71,24 +79,54 @@ OrganTube : Object {
 
     var r, g, b;
 
-    r = (this.color.red() * 254).round().asInteger();
-    g = (this.color.green() * 254).round().asInteger();
-    b = (this.color.blue() * 254).round().asInteger();
+    //if ((
+      //this.lastSentColor.red() != this.color.red()
+      //&& this.lastSentColor.green() != this.color.green()
+      //&& this.lastSentColor.blue() != this.color.blue()
+      //&& this.lastSentBrightness != this.brightness
+    //), {
+      r = (this.brightness * this.color.red() * 254).round().asInteger();
+      g = (this.brightness * this.color.green() * 254).round().asInteger();
+      b = (this.brightness * this.color.blue() * 254).round().asInteger();
 
-    if (this.organ.oscSock != nil, {
-      this.organ.oscSock.sendMsg(
-        "/organ/tube",
-        this.tubeIndex,
-        "rgb/",
-        r,
-        g,
-        b
-      );
-    });
+      if (this.organ.oscSock != nil, {
+        this.organ.oscSock.sendMsg(
+          "/organ/tube",
+          this.tubeIndex,
+          "rgb/",
+          r,
+          g,
+          b
+        );
+      });
 
-    if (this.organ.arduinoSock != nil, {
-      this.organ.arduinoSock.putAll(Int8Array[this.arduinoTubeIndex(this.tubeIndex), r, g, b]);
-    });
-  
+      if (this.organ.arduinoSock != nil, {
+        this.organ.arduinoSock.putAll(Int8Array[this.arduinoTubeIndex(this.tubeIndex), r, g, b]);
+      });
+
+      this.lastSentColor = this.color;
+      this.lastSentBrightness = this.brightness;
+
+    //});
   }
+
+  turn_off {
+    this.brightness = 0.0;
+  }
+
+  is_on {
+    ^(this.brightness != 0);
+  }
+
+  set_brightness {
+    arg aBrightness;
+
+    if (aBrightness < 0, {
+      aBrightness = 0;    
+    });
+
+    this.brightness = aBrightness;
+  }
+
+
 }

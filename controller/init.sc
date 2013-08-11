@@ -1,8 +1,3 @@
-//Quarks.gui()
-
-/*(
-  SerialPort.listDevices();
-)*/
 
 /*(
   ~arduinoPort = SerialPort.new("/dev/tty.usbmodemfd121", 115200);
@@ -82,10 +77,11 @@
 (
 
   var m, mBounds;
+  SerialPort.listDevices();
 
   s.quit;
 
-  s.options.inDevice = "Built-in Microphone";
+  //s.options.inDevice = "Built-in Microphone";
   //s.options.inDevice = "JackRouter";
   /*s.options.inDevice = "PreSonus FIREPOD (2112)";*/
   /*s.options.inDevice = "SF + 1818";*/
@@ -93,13 +89,13 @@
   /*s.options.inDevice = "Soundflower (64ch)";*/
   /*s.options.inDevice = "H4";*/
 
-  /*s.options.memSize = 262144; // 256 Mb*/
+  s.options.memSize = 4096;
   /*s.options.outDevice = "Soundflower (64ch)";*/
   //s.options.sampleRate = 48000;
   /*s.options.blockSize = 8;*/
   s.boot();
 
-  m = s.meter();
+  //m = s.meter();
 
 
   /*mBounds = m.window.bounds;*/
@@ -116,7 +112,6 @@
   s.doWhenBooted({
     /*var outPatch;
   
-    m = s.meter();
     
     outPatch = Patch("GhettoFigure8");
 
@@ -133,29 +128,35 @@
 
     var organ, visualizer;
 
+    //m = s.meter();
     /*outSock = NetAddr.new("192.168.1.110", 5001);
     outSock.sendMsg("/organ/tube", 1, "rgb/", 255, 255, 0);*/
 
     
     organ = Organ.new((
-      connectToVisualizer: true,
-      address: "localhost",
+      connectToVisualizer: false,
+      address: "192.168.2.1",
+      //address: "localhost",
       port: 5001,
-      connectToArduino: false,
-      arduinoAddress: "/dev/tty.usbmodemfd121",
+      connectToArduino: true,
+      //arduinoAddress: "/dev/tty.usbmodemfd121",
+      arduinoAddress: "/dev/ttyACM1",
       arduinoBaudRate: 115200
     ));
 
-    //organ.doBrightnessTest(5.0);
-    //organ.doSleepMode();
-    //organ.doPositionTest();
-    //organ.doTubeIndexTest();
+    "connected!".postln();
+    5.0.wait();
 
     organ.allLightsOff();
 
-    visualizer = Visualizer.new((
-      organ: organ
-    ));
+    //organ.doBrightnessTest(5.0);
+    organ.doSleepMode();
+    //organ.doTubeIndexTest();
+
+
+    //visualizer = Visualizer.new((
+      //organ: organ
+    //));
 
 
   });

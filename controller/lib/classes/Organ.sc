@@ -1,6 +1,6 @@
 Organ : Object {
 
-  var <>arduinoSock, <>oscSock, <>tubes, <>brightnessTestIsOn, <>tubePauseTime;
+  var <>arduinoSock, <>oscSock, <>tubes, <>brightnessTestIsOn, <>tubePauseTime, <>updater, <>sleepModeAnimator;
 
   *new {
     arg initParams;
@@ -13,7 +13,8 @@ Organ : Object {
 
     this.brightnessTestIsOn = false;
 
-    this.tubePauseTime = 0.009;
+    this.tubePauseTime = 0.005;
+    //this.tubePauseTime = 0.0001;
 
     this.oscSock = nil;
     if (initParams['connectToVisualizer'], {
@@ -41,6 +42,13 @@ Organ : Object {
       this.tubes = this.tubes.add(tube);
 
     });
+    
+    this.updater = Routine.new({
+      while({true}, {
+        this.update();
+      })
+    });
+    SystemClock.play(this.updater);
 
   }
 
@@ -52,33 +60,48 @@ Organ : Object {
     "Organ: All lights off!".postln();
     this.tubes.do({
       arg tube;
-      tube.color.red = 0;
-      tube.color.green = 0;
-      tube.color.blue = 0;
+      tube.turn_off();
+    });
+  }
+
+  /**
+   *  Set the hue of all the tubes at once.
+   **/
+  set_tubes_hue {
+    arg newHue;
+
+    var newColor;
+
+    newColor = Color.hsv(newHue, 1.0, 1.0);
+
+    this.tubes.do({
+      arg tube;
+
+      tube.color = newColor;
     });
 
-    this.update();
   }
 
   update {
+    //"Organ.update...".postln();
     if (this.arduinoSock != nil, {
       this.arduinoSock.putAll(Int8Array[255]);
     });
 
     this.tubes.do({
       arg tube;
-
-      this.tubePauseTime.wait();
       //("Updating tube " ++ tube.tubeIndex).postln();
       tube.update();
+      this.tubePauseTime.wait();
     });
 
     if (this.arduinoSock != nil, {
       this.arduinoSock.putAll(Int8Array[255, 255, 255]);
     });
+    //"Organ.update done".postln();
   }
 
-  doPositionTest {
+  /*doPositionTest {
     var lightPositionEnv,
       numSideTubes = 5,
       centerTubeIndex,
@@ -132,18 +155,19 @@ Organ : Object {
     }.loop();
 
 
-  }
+  }*/
 
   doSleepMode {
     var brightnessCycle,
       brightnessStream,
-      val,
+      brightness,
       test,
       updateTime,
       t,
       breathHue,
       breathSaturation,
-      breathColor;
+      breathColor,
+      duration = 16.0;
 
     "Organ: doSleepMode".postln();
 
@@ -152,35 +176,32 @@ Organ : Object {
     
     brightnessCycle = Env(
       [0,   1,    1,    0,  0],
-      [ 0.4,  0.1,  0.4,  0.1 ],
+      [ 0.4,  0.1,  0.4,  0.1 ] * duration,
       \sin
       //[ 4,   8,   -8   ]
     );
-    brightnessCycle.duration = 8.0;
+    //brightnessCycle.duration = 8.0;
 
-    {
+    this.sleepModeAnimator = Routine.new({
       brightnessStream = brightnessCycle.asStream();
       t = 0;
-      breathHue = 0.999.rand();
-      breathSaturation = 0.8;
+      this.set_tubes_hue(0.999.rand());
 
-      while({ t <= brightnessCycle.totalDuration() }, {
-        val = brightnessStream.next();
-
-        breathColor = Color.hsv(breathHue, breathSaturation, val);
+      while({ t <= duration }, {
+        brightness = brightnessStream.next();
 
         this.tubes.do({
           arg tube;
 
-          tube.color = breathColor;
+          tube.brightness = brightness;
 
         });
-
-        this.update();
         t = t + updateTime;
+        updateTime.wait();
       });
-    
-    }.loop();
+    }).loop();
+
+    SystemClock.play(this.sleepModeAnimator);
   }
 
   doTubeIndexTest {
@@ -189,7 +210,6 @@ Organ : Object {
     "tubeIndexTest!".postln();
 
     {
-      this.allLightsOff();
       i = 0;
       while({ i < this.tubes.size() }, {
         led = this.tubes[i].color.red = 1.0;
