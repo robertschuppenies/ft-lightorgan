@@ -1,6 +1,7 @@
 OrganTube : Object {
   var <>tubeIndex,
     <>color,
+    <>brightness,
     <>organ;
 
   *new {
@@ -17,6 +18,7 @@ OrganTube : Object {
 
     this.color = Color.new();
 
+    this.brightness = 0.0;
   }
 
   arduinoTubeIndex {
@@ -71,9 +73,9 @@ OrganTube : Object {
 
     var r, g, b;
 
-    r = (this.color.red() * 254).round().asInteger();
-    g = (this.color.green() * 254).round().asInteger();
-    b = (this.color.blue() * 254).round().asInteger();
+    r = (this.brightness * this.color.red() * 254).round().asInteger();
+    g = (this.brightness * this.color.green() * 254).round().asInteger();
+    b = (this.brightness * this.color.blue() * 254).round().asInteger();
 
     if (this.organ.oscSock != nil, {
       this.organ.oscSock.sendMsg(
@@ -89,6 +91,25 @@ OrganTube : Object {
     if (this.organ.arduinoSock != nil, {
       this.organ.arduinoSock.putAll(Int8Array[this.arduinoTubeIndex(this.tubeIndex), r, g, b]);
     });
-  
   }
+
+  turn_off {
+    this.brightness = 0.0;
+  }
+
+  is_on {
+    ^(this.brightness != 0);
+  }
+
+  set_brightness {
+    arg aBrightness;
+
+    if (aBrightness < 0, {
+      aBrightness = 0;    
+    });
+
+    this.brightness = aBrightness;
+  }
+
+
 }
