@@ -29,6 +29,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(UNIT_COUNT*LEDS_PER_UNIT,
 void initStrip() {
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
+  Serial.println('initialized');
 }
 
 
