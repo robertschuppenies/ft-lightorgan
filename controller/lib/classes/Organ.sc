@@ -1,6 +1,13 @@
 Organ : Object {
 
-  var <>arduinoSock, <>oscSock, <>tubes, <>brightnessTestIsOn, <>tubePauseTime, <>updater, <>sleepModeAnimator;
+  var <>arduinoSock,
+    <>oscSock,
+    <>tubes,
+    <>brightnessTestIsOn,
+    <>tubePauseTime,
+    <>updater,
+    <>sleepModeAnimator,
+    <>sleepModeRunning;
 
   *new {
     arg initParams;
@@ -28,6 +35,8 @@ Organ : Object {
         initParams['arduinoBaudRate']
       );
     });
+
+    this.sleepModeRunning = false;
 
     // initialize organ tubes
 
@@ -166,7 +175,7 @@ Organ : Object {
 
   }*/
 
-  doSleepMode {
+  start_sleep_mode {
     var brightnessCycle,
       brightnessStream,
       brightness,
@@ -210,7 +219,13 @@ Organ : Object {
       });
     }).loop();
 
+    this.sleepModeRunning = true;
     SystemClock.play(this.sleepModeAnimator);
+  }
+
+  stop_sleep_mode {
+    this.sleepModeAnimator.stop();
+    this.sleepModeRunning = false;
   }
 
   doTubeIndexTest {

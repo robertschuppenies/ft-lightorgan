@@ -157,7 +157,7 @@
 
     2.0.wait();
     
-    organ.doSleepMode();
+    //organ.doSleepMode();
 
     //"visualizer.start_updating".postln();
     //visualizer.start_updating();
