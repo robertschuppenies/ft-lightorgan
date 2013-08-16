@@ -86,6 +86,7 @@ Organ : Object {
   }
 
   update {
+    var messageWasSent;
     //"Organ.update...".postln();
     if (this.arduinoSock != nil, {
       this.arduinoSock.putAll(Int8Array[255]);
@@ -94,8 +95,13 @@ Organ : Object {
     this.tubes.do({
       arg tube;
       //("Updating tube " ++ tube.tubeIndex).postln();
-      tube.update();
-      this.tubePauseTime.wait();
+      messageWasSent = tube.update();
+
+      if (messageWasSent == true, {
+        this.tubePauseTime.wait();
+      }, {
+        0.01.wait();
+      });
     });
 
     if (this.arduinoSock != nil, {
@@ -174,7 +180,7 @@ Organ : Object {
 
     "Organ: doSleepMode".postln();
 
-    updateTime = this.updateTime();
+    updateTime = 0.1;
     t = 0.0;
     
     brightnessCycle = Env(

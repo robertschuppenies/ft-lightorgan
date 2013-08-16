@@ -149,7 +149,6 @@
 
     organ.allLightsOff();
     //organ.doBrightnessTest(5.0);
-    organ.doSleepMode();
     //organ.doTubeIndexTest();
 
 
@@ -157,8 +156,10 @@
     organ.start_updating();
 
     2.0.wait();
+    
+    organ.doSleepMode();
 
-    "visualizer.start_updating".postln();
+    //"visualizer.start_updating".postln();
     //visualizer.start_updating();
 
   });

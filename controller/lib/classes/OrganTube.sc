@@ -1,9 +1,8 @@
 OrganTube : Object {
   var <>tubeIndex,
     <>color,
-    <>lastSentColor,
+    <>lastSentCache,
     <>brightness,
-    <>lastSentBrightness,
     <>organ;
 
   *new {
@@ -23,8 +22,11 @@ OrganTube : Object {
 
     // set last sent color to white just so messages from first update
     // will be sent
-    this.lastSentColor = Color.new(1.0, 1.0, 1.0);
-    this.lastSentBrightness = 1.0;
+    this.lastSentCache = (
+      r: 254,
+      g: 254,
+      b: 254
+    );
   }
 
   arduinoTubeIndex {
@@ -79,15 +81,14 @@ OrganTube : Object {
 
     var r, g, b;
 
-    //if ((
-      //this.lastSentColor.red() != this.color.red()
-      //&& this.lastSentColor.green() != this.color.green()
-      //&& this.lastSentColor.blue() != this.color.blue()
-      //&& this.lastSentBrightness != this.brightness
-    //), {
-      r = (this.brightness * this.color.red() * 254).round().asInteger();
-      g = (this.brightness * this.color.green() * 254).round().asInteger();
-      b = (this.brightness * this.color.blue() * 254).round().asInteger();
+    r = (this.brightness * this.color.red() * 254).round().asInteger();
+    g = (this.brightness * this.color.green() * 254).round().asInteger();
+    b = (this.brightness * this.color.blue() * 254).round().asInteger();
+
+    if ((
+      this.lastSentCache['r'] != r || this.lastSentCache['g'] != g
+      || this.lastSentCache['b'] != b
+    ), {
 
       if (this.organ.oscSock != nil, {
         this.organ.oscSock.sendMsg(
@@ -104,10 +105,14 @@ OrganTube : Object {
         this.organ.arduinoSock.putAll(Int8Array[this.arduinoTubeIndex(this.tubeIndex), r, g, b]);
       });
 
-      this.lastSentColor = this.color;
-      this.lastSentBrightness = this.brightness;
+      this.lastSentCache['r'] = r;
+      this.lastSentCache['g'] = g;
+      this.lastSentCache['b'] = b;
 
-    //});
+      ^true;
+    });
+
+    ^false;
   }
 
   turn_off {
