@@ -135,12 +135,12 @@
     
     organ = Organ.new((
       connectToVisualizer: true,
-      //address: "192.168.2.1",
-      address: "localhost",
+      address: "192.168.2.1",
+      //address: "localhost",
       port: 5001,
-      connectToArduino: false,
+      connectToArduino: true,
       //arduinoAddress: "/dev/tty.usbmodemfd121",
-      arduinoAddress: "/dev/ttyACM1",
+      arduinoAddress: "/dev/ttyACM0",
       arduinoBaudRate: 115200
     ));
     visualizer = Visualizer.new((
