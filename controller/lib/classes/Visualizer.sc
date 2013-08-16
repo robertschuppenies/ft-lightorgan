@@ -1,6 +1,20 @@
 Visualizer : Object {
-  var <>freqMagnitudeToPitchMap, <>organ, <>hueUpdater, <>spectrumUpdater, <>sleepMonitor, <>sleepMonitorHistory, <>sleepMonitorVarianceWasUnderThresholdCount;
-  classvar <sleepMonitorOrder = 20, <sleepMonitorPollTime = 0.5, <sleepMonitorVarianceThreshold=1e-05;
+  var <>freqMagnitudeToPitchMap,
+    <>organ,
+    <>hueUpdater,
+    <>spectrumUpdater,
+    <>sleepMonitor,
+    <>sleepMonitorHistory,
+    <>sleepMonitorVarianceWasUnderThresholdCount,
+    <>visualizerisRunning,
+    <>loudnessBus,
+    <>hueModulatorBus,
+    <>visualizerDataBuf;
+  classvar <sleepMonitorOrder = 20,
+    <sleepMonitorPollTime = 0.5,
+    <sleepMonitorVarianceThreshold=1e-05,
+    <serverPollTime = 0.1,
+    <fftSize = 2048;
 
   *new {
     arg initParams;
@@ -11,17 +25,16 @@ Visualizer : Object {
 
     arg initParams;
 
-    var inputPatch, visualizerDataBuf, fftSize = 2048, loudnessBus,
-      previousValue, n, valuesSincePrevious, hueModulatorBus, me = this,
-      serverPollTime = 0.1;
+    var inputPatch,
+      previousValue, n, valuesSincePrevious;
 
     this.freqMagnitudeToPitchMap =  [0, 1, 2, 3, 4, 5, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24];
     this.organ = initParams['organ'];
 
     visualizerDataBuf = Buffer.alloc(Server.default, fftSize);
 
-    loudnessBus = Bus.control(numChannels: 1);
-    hueModulatorBus = Bus.control(numChannels: 1);
+    this.loudnessBus = Bus.control(numChannels: 1);
+    this.hueModulatorBus = Bus.control(numChannels: 1);
 
     inputPatch = Patch(Instr.at("VisualizerData"), (
       outputBuffer: visualizerDataBuf,
@@ -35,35 +48,12 @@ Visualizer : Object {
 
     0.5.wait();
 
-    this.hueUpdater = Routine.new({
-      while({true}, {
-        hueModulatorBus.get({
-          arg val;
-          this.handle_hue_modulation(val);
-        });
-        serverPollTime.wait();
-      });
-    });
+    this.visualizerisRunning = false;
 
-    this.spectrumUpdater = Routine.new({
-      while({true}, {
-        visualizerDataBuf.getn(0, fftSize, {
-          arg data;
-          this.handle_spectrum_update(data);
-        });
-        serverPollTime.wait();
-      });
-    });
+
 
     this.sleepMonitorHistory = [];
     this.sleepMonitorVarianceWasUnderThresholdCount = 0;
-    this.sleepMonitor = Routine.new({
-      loudnessBus.get({
-        arg val;
-        this.handle_loudness_update(val);
-      });
-      sleepMonitorPollTime.wait();
-    }).loop();
     this.start_sleep_monitor();
 
     
@@ -103,25 +93,45 @@ Visualizer : Object {
   }
 
   start_visualizer {
+    this.spectrumUpdater = Routine.new({
+      visualizerDataBuf.getn(0, fftSize, {
+        arg data;
+        this.handle_spectrum_update(data);
+      });
+      serverPollTime.wait();
+    }).loop();
+    this.hueUpdater = Routine.new({
+      hueModulatorBus.get({
+        arg val;
+        this.handle_hue_modulation(val);
+      });
+      serverPollTime.wait();
+    }).loop();
     SystemClock.play(this.hueUpdater);
     SystemClock.play(this.spectrumUpdater);
+    this.visualizerisRunning = true;
   }
 
   stop_visualizer {
     this.hueUpdater.stop();
     this.spectrumUpdater.stop();
+    this.visualizerisRunning = false;
   }
 
   start_sleep_monitor {
+    this.sleepMonitor = Routine.new({
+      loudnessBus.get({
+        arg val;
+        this.handle_loudness_update(val);
+      });
+      sleepMonitorPollTime.wait();
+    }).loop();
     SystemClock.play(this.sleepMonitor);
   }
 
   handle_loudness_update {
     arg loudness;
     var avg, variance;
-
-    "loudness:".postln;
-    loudness.postln;
 
     this.sleepMonitorHistory = this.sleepMonitorHistory.add(loudness);
 
@@ -149,6 +159,11 @@ Visualizer : Object {
         this.sleepMonitorVarianceWasUnderThresholdCount = this.sleepMonitorVarianceWasUnderThresholdCount + 1;
 
         if (this.sleepMonitorVarianceWasUnderThresholdCount >= Visualizer.sleepMonitorOrder, {
+
+          if (this.visualizerisRunning == true, {
+            this.stop_visualizer();
+          });
+
           if (this.organ.sleepModeRunning == false, {
             this.organ.start_sleep_mode();
           });
@@ -157,8 +172,13 @@ Visualizer : Object {
       }, {
         this.sleepMonitorVarianceWasUnderThresholdCount = 0;
         if (this.organ.sleepModeRunning == true, {
-          this.organ.stop_sleep_mode();    
+          this.organ.stop_sleep_mode();
         });
+
+        if (this.visualizerisRunning == false, {
+          this.start_visualizer();    
+        });
+
       });
 
       // remove oldest value
