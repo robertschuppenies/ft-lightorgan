@@ -156,11 +156,14 @@
     organ.start_updating();
 
     2.0.wait();
-    
-    //organ.doSleepMode();
 
-    //"visualizer.start_updating".postln();
-    //visualizer.start_updating();
+    organ.do_startup_animation();
+
+    organ.startup_animation_duration().wait();
+
+    organ.allLightsOff();
+
+    visualizer.start_sleep_monitor();
 
   });
 

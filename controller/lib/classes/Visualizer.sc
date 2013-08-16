@@ -54,7 +54,6 @@ Visualizer : Object {
 
     this.sleepMonitorHistory = [];
     this.sleepMonitorVarianceWasUnderThresholdCount = 0;
-    this.start_sleep_monitor();
 
     
     //// keep track of last Nth value

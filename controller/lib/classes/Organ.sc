@@ -119,6 +119,52 @@ Organ : Object {
     //"Organ.update done".postln();
   }
 
+  startup_animation_duration {
+    ^10.0;
+  }
+
+  do_startup_animation {
+    var startupAnimationRunner;
+
+    startupAnimationRunner = Routine({
+      26.do({
+        arg i;
+
+        this.tubes[i].color.red = 0;
+        this.tubes[i].color.blue = 0;
+        this.tubes[i].color.green = 1;
+        this.tubes[i].brightness = 0.8;
+        this.tubes[26 + i].color.red = 0;
+        this.tubes[26 + i].color.blue = 0;
+        this.tubes[26 + i].color.green = 1;
+        this.tubes[26 + i].brightness = 0.8;
+
+        (0.5 * this.startup_animation_duration() / 25.0).wait();
+      });
+
+      3.do({
+        this.tubes.do({
+          arg tube;
+
+          tube.color.red = 0;
+          tube.color.blue = 0;
+          tube.color.green = 1;
+          tube.brightness = 1.0;
+        });
+        0.7.wait();
+
+        this.tubes.do({
+          arg tube;
+
+          tube.brightness = 0.0;
+        });
+        0.3.wait();
+      })
+    });
+    SystemClock.play(startupAnimationRunner);
+
+  }
+
   /*doPositionTest {
     var lightPositionEnv,
       numSideTubes = 5,
