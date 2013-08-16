@@ -48,8 +48,11 @@ Organ : Object {
         this.update();
       })
     });
-    SystemClock.play(this.updater);
 
+  }
+
+  start_updating {
+    SystemClock.play(this.updater);
   }
 
   updateTime {

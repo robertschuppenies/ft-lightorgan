@@ -134,30 +134,32 @@
 
     
     organ = Organ.new((
-      connectToVisualizer: false,
-      address: "192.168.2.1",
-      //address: "localhost",
+      connectToVisualizer: true,
+      //address: "192.168.2.1",
+      address: "localhost",
       port: 5001,
-      connectToArduino: true,
+      connectToArduino: false,
       //arduinoAddress: "/dev/tty.usbmodemfd121",
       arduinoAddress: "/dev/ttyACM1",
       arduinoBaudRate: 115200
     ));
-
-    "connected!".postln();
-    5.0.wait();
+    visualizer = Visualizer.new((
+      organ: organ
+    ));
 
     organ.allLightsOff();
-
     //organ.doBrightnessTest(5.0);
     organ.doSleepMode();
     //organ.doTubeIndexTest();
 
 
-    //visualizer = Visualizer.new((
-      //organ: organ
-    //));
+    "organ.start_updating".postln();
+    organ.start_updating();
 
+    2.0.wait();
+
+    "visualizer.start_updating".postln();
+    //visualizer.start_updating();
 
   });
 

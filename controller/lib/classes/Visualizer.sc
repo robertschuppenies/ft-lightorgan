@@ -43,7 +43,6 @@ Visualizer : Object {
         serverPollTime.wait();
       });
     });
-    SystemClock.play(this.hueUpdater);
 
     this.spectrumUpdater = Routine.new({
       while({true}, {
@@ -54,7 +53,6 @@ Visualizer : Object {
         serverPollTime.wait();
       });
     });
-    SystemClock.play(this.spectrumUpdater);
 
 
 
@@ -92,6 +90,11 @@ Visualizer : Object {
     //}.loop();
 
   
+  }
+
+  start_updating {
+    SystemClock.play(this.hueUpdater);
+    SystemClock.play(this.spectrumUpdater);
   }
 
   /**
