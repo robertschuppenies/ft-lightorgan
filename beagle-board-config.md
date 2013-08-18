@@ -1,0 +1,2 @@
+user: ccrma
+passwd: nothingbuttime

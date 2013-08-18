@@ -4,10 +4,11 @@ Organ : Object {
     <>oscSock,
     <>tubes,
     <>brightnessTestIsOn,
-    <>tubePauseTime,
     <>updater,
     <>sleepModeAnimator,
     <>sleepModeRunning;
+  classvar <tubePauseTime = 0.001,
+    <messagePauseTime = 0.04;
 
   *new {
     arg initParams;
@@ -19,9 +20,6 @@ Organ : Object {
     var tube;
 
     this.brightnessTestIsOn = false;
-
-    this.tubePauseTime = 0.005;
-    //this.tubePauseTime = 0.0001;
 
     this.oscSock = nil;
     if (initParams['connectToVisualizer'], {
@@ -64,10 +62,6 @@ Organ : Object {
     SystemClock.play(this.updater);
   }
 
-  updateTime {
-    ^(this.tubePauseTime * this.tubes.size())
-  }
-
   allLightsOff {
     "Organ: All lights off!".postln();
     this.tubes.do({
@@ -97,25 +91,32 @@ Organ : Object {
   update {
     var messageWasSent;
     //"Organ.update...".postln();
-    if (this.arduinoSock != nil, {
-      this.arduinoSock.putAll(Int8Array[255]);
-    });
+    //if (this.arduinoSock != nil, {
+      //this.arduinoSock.putAll(Int9Array[255]);
+    //});
 
     this.tubes.do({
       arg tube;
       //("Updating tube " ++ tube.tubeIndex).postln();
       messageWasSent = tube.update();
+      tubePauseTime.wait();
 
-      if (messageWasSent == true, {
-        this.tubePauseTime.wait();
+      /*if (messageWasSent == true, {
+        "tubePauseTime.wait()".postln();
+        tubePauseTime.wait();
       }, {
-        0.01.wait();
-      });
+        0.001.wait();
+      });*/
     });
 
     if (this.arduinoSock != nil, {
-      this.arduinoSock.putAll(Int8Array[255, 255, 255]);
+      this.arduinoSock.putAll(Int8Array[255, 255, 255, 255, 255, 255]);
     });
+
+    if (this.oscSock != nil, {
+      this.oscSock.sendMsg("/organ/flush");
+    });
+    messagePauseTime.wait();
     //"Organ.update done".postln();
   }
 

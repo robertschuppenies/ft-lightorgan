@@ -1,4 +1,5 @@
 OrganTube : Object {
+  classvar <maximumBrightness=0.8;
   var <>tubeIndex,
     <>color,
     <>lastSentCache,
@@ -79,11 +80,13 @@ OrganTube : Object {
 
   update {
 
-    var r, g, b;
+    var r, g, b, actualBrightness;
 
-    r = (this.brightness * this.color.red() * 254).round().asInteger();
-    g = (this.brightness * this.color.green() * 254).round().asInteger();
-    b = (this.brightness * this.color.blue() * 254).round().asInteger();
+    actualBrightness = maximumBrightness * this.brightness;
+
+    r = (actualBrightness * this.color.red() * 254).round().asInteger();
+    g = (actualBrightness * this.color.green() * 254).round().asInteger();
+    b = (actualBrightness * this.color.blue() * 254).round().asInteger();
 
     if ((
       this.lastSentCache['r'] != r || this.lastSentCache['g'] != g
@@ -94,7 +97,7 @@ OrganTube : Object {
         this.organ.oscSock.sendMsg(
           "/organ/tube",
           this.tubeIndex,
-          "rgb/",
+          //"rgb/",
           r,
           g,
           b
@@ -102,6 +105,8 @@ OrganTube : Object {
       });
 
       if (this.organ.arduinoSock != nil, {
+        //("Sending update message for tube " ++ this.tubeIndex).postln();
+        this.organ.arduinoSock.putAll(Int8Array[255]);
         this.organ.arduinoSock.putAll(Int8Array[this.arduinoTubeIndex(this.tubeIndex), r, g, b]);
       });
 

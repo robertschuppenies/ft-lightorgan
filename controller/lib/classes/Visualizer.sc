@@ -10,10 +10,10 @@ Visualizer : Object {
     <>loudnessBus,
     <>hueModulatorBus,
     <>visualizerDataBuf;
-  classvar <sleepMonitorOrder = 20,
+  classvar <sleepMonitorOrder = 600,
     <sleepMonitorPollTime = 0.5,
     <sleepMonitorVarianceThreshold=1e-05,
-    <serverPollTime = 0.1,
+    <serverPollTime = 0.5,
     <fftSize = 2048;
 
   *new {
