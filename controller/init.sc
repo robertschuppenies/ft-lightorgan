@@ -82,7 +82,7 @@
   s.quit;
 
   //s.options.inDevice = "Built-in Microphone";
-  //s.options.inDevice = "Line In";
+  s.options.inDevice = "Line In";
   //s.options.inDevice = "JackRouter";
   /*s.options.inDevice = "PreSonus FIREPOD (2112)";*/
   /*s.options.inDevice = "SF + 1818";*/
