@@ -1,6 +1,14 @@
 Organ : Object {
 
-  var <>arduinoSock, <>oscSock, <>tubes, <>brightnessTestIsOn, <>tubePauseTime, <>updater, <>sleepModeAnimator;
+  var <>arduinoSock,
+    <>oscSock,
+    <>tubes,
+    <>brightnessTestIsOn,
+    <>updater,
+    <>sleepModeAnimator,
+    <>sleepModeRunning;
+  classvar <tubePauseTime = 0.001,
+    <messagePauseTime = 0.04;
 
   *new {
     arg initParams;
@@ -12,9 +20,6 @@ Organ : Object {
     var tube;
 
     this.brightnessTestIsOn = false;
-
-    this.tubePauseTime = 0.005;
-    //this.tubePauseTime = 0.0001;
 
     this.oscSock = nil;
     if (initParams['connectToVisualizer'], {
@@ -28,6 +33,8 @@ Organ : Object {
         initParams['arduinoBaudRate']
       );
     });
+
+    this.sleepModeRunning = false;
 
     // initialize organ tubes
 
@@ -48,12 +55,11 @@ Organ : Object {
         this.update();
       })
     });
-    SystemClock.play(this.updater);
 
   }
 
-  updateTime {
-    ^(this.tubePauseTime * this.tubes.size())
+  start_updating {
+    SystemClock.play(this.updater);
   }
 
   allLightsOff {
@@ -83,22 +89,81 @@ Organ : Object {
   }
 
   update {
+    var messageWasSent;
     //"Organ.update...".postln();
-    if (this.arduinoSock != nil, {
-      this.arduinoSock.putAll(Int8Array[255]);
-    });
+    //if (this.arduinoSock != nil, {
+      //this.arduinoSock.putAll(Int9Array[255]);
+    //});
 
     this.tubes.do({
       arg tube;
       //("Updating tube " ++ tube.tubeIndex).postln();
-      tube.update();
-      this.tubePauseTime.wait();
+      messageWasSent = tube.update();
+      tubePauseTime.wait();
+
+      /*if (messageWasSent == true, {
+        "tubePauseTime.wait()".postln();
+        tubePauseTime.wait();
+      }, {
+        0.001.wait();
+      });*/
     });
 
     if (this.arduinoSock != nil, {
-      this.arduinoSock.putAll(Int8Array[255, 255, 255]);
+      this.arduinoSock.putAll(Int8Array[255, 255, 255, 255, 255, 255]);
     });
+
+    if (this.oscSock != nil, {
+      this.oscSock.sendMsg("/organ/flush");
+    });
+    messagePauseTime.wait();
     //"Organ.update done".postln();
+  }
+
+  startup_animation_duration {
+    ^10.0;
+  }
+
+  do_startup_animation {
+    var startupAnimationRunner;
+
+    startupAnimationRunner = Routine({
+      26.do({
+        arg i;
+
+        this.tubes[i].color.red = 0;
+        this.tubes[i].color.blue = 0;
+        this.tubes[i].color.green = 1;
+        this.tubes[i].brightness = 0.8;
+        this.tubes[26 + i].color.red = 0;
+        this.tubes[26 + i].color.blue = 0;
+        this.tubes[26 + i].color.green = 1;
+        this.tubes[26 + i].brightness = 0.8;
+
+        (0.5 * this.startup_animation_duration() / 25.0).wait();
+      });
+
+      3.do({
+        this.tubes.do({
+          arg tube;
+
+          tube.color.red = 0;
+          tube.color.blue = 0;
+          tube.color.green = 1;
+          tube.brightness = 1.0;
+        });
+        0.7.wait();
+
+        this.tubes.do({
+          arg tube;
+
+          tube.brightness = 0.0;
+        });
+        0.3.wait();
+      })
+    });
+    SystemClock.play(startupAnimationRunner);
+
   }
 
   /*doPositionTest {
@@ -157,7 +222,7 @@ Organ : Object {
 
   }*/
 
-  doSleepMode {
+  start_sleep_mode {
     var brightnessCycle,
       brightnessStream,
       brightness,
@@ -171,7 +236,7 @@ Organ : Object {
 
     "Organ: doSleepMode".postln();
 
-    updateTime = this.updateTime();
+    updateTime = 0.1;
     t = 0.0;
     
     brightnessCycle = Env(
@@ -201,7 +266,13 @@ Organ : Object {
       });
     }).loop();
 
+    this.sleepModeRunning = true;
     SystemClock.play(this.sleepModeAnimator);
+  }
+
+  stop_sleep_mode {
+    this.sleepModeAnimator.stop();
+    this.sleepModeRunning = false;
   }
 
   doTubeIndexTest {

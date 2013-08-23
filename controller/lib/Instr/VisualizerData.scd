@@ -13,7 +13,7 @@ Instr("VisualizerData", {
     hueModulator;
 
   out = Silence.ar();
-  in = SoundIn.ar(0);
+  in = SoundIn.ar(1);
 
   tempBuf = LocalBuf(outputBuffer.numFrames);
   fftChain = FFT(tempBuf, in);

@@ -17,7 +17,7 @@ DEFAULT_BAUD_RATE = 115200
 # Byte value used as a delimiter between serial packages.
 SERIAL_DELIM = chr(255)
 # Time to wait between sending new data packages.
-SERIAL_UNIT_WRITE_SLEEP = 0.0007
+SERIAL_UNIT_WRITE_SLEEP = 0.005
 # Time to wait between sending new data packages.
 SERIAL_FLUSH_SLEEP = 0.04
 
@@ -323,7 +323,7 @@ if __name__ == '__main__':
 
     (options, args) = parser.parse_args()
     if len(args) != 0:
-        print 'Error: No arguments.'
+        print('Error: No arguments.')
         parser.print_help()
         sys.exit(1)
 
