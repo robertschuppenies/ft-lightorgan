@@ -27,8 +27,20 @@ BRIGHTNESS_STEPS = 30
 # LED strip since that value is used as a delimiter).
 MAX_COLOR_VALUE = 254
 
-MODES = ['hsv', 'rgb']
+MODES = ['hsv', 'hsv_chaser', 'rgb']
 DEFAULT_MODE = MODES[0]
+
+MAX_DISTANCE_TO_MIDDLE = 12
+
+class XAxis(object):
+    LEFT = -1
+    MIDDLE = 0
+    RIGHT = 1
+
+
+class ZAxis(object):
+    FRONT = 0
+    BACK = 1
 
 
 def _init_serial(port, baud_rate):
@@ -85,6 +97,43 @@ def set_color_units(ser, unit_values):
     _send_set_color_set()
 
 
+def _get_coordinate(unit):
+    if 0 <= unit <= 8:
+        return (XAxis.LEFT, ZAxsis.FRONT)
+    elif unit < 21:
+        return (XAxis.LEFT, ZAxsis.BACK)
+    elif unit == 21:
+        return (XAxis.MIDDLE, ZAxsis.BACK)
+    elif unit <= 34:
+        return (XAxis.RIGHT, ZAxsis.BACK)
+    elif unit <= 47:
+        return (XAxis.RIGHT, ZAxsis.FRONT)
+    elif unit <= 51:
+        return (XAxis.LEFT, ZAxsis.FRONT)
+    else:
+        msg = 'given unit could not be mapped to coordinates: %s' % unit
+        raise ValueError(msg)
+
+
+def _get_distance_to_middle(unit):
+    if 0 <= unit <= 8:
+        return unit + 4
+    elif unit < 21:
+        return 21 - unit
+    elif unit == 21:
+        return 0
+    elif unit <= 34:
+        return unit - 22
+    elif unit <= 47:
+        return 47 - unit
+    elif unit <= 51:
+        return math.fabs(unit - 46)
+    else:
+        msg = 'given unit could not be mapped to coordinates: %s' % unit
+        raise ValueError(msg)
+
+
+
 def rotate_color_brightness(ser):
     """Rotate brightness in red, green, blue, and white.
 
@@ -138,8 +187,82 @@ def _hsv_to_rgb(hue, saturation, value):
     return int(244*r), int(244*g), int(244*b)
 
 
-def rotate_hsv(ser, hue_step_size=10, value=1.0, saturation=0.8,
-               max_beacons=3):
+def rotate_hsv(ser, step_sleep=0.1, hue_step_size=3, value=0.4, saturation=1):
+    """Rotate HSV (hue, saturation, value) color mapping.
+
+    Args:
+      ser: An initialized serial.Serial object.
+    """
+    hue = 0
+    while True:
+        if hue < 360:
+            hue += hue_step_size
+        else:
+            hue = 0
+        unit_values = []
+        for unit in range(0, UNITS):
+            r, g, b = _hsv_to_rgb(hue, saturation, value)
+            unit_values.append([unit, r, g, b])
+        set_color_units(ser, unit_values)
+        time.sleep(step_sleep)
+    _send_set_color_set()
+
+
+def rotate_hsv_centered(ser, min_radius=1, max_radius=15, step_sleep=0.1,
+                        hue_step_size=2, value=0.7, saturation=1):
+    """Rotate HSV (hue, saturation, value) color mapping.
+
+    Args:
+      ser: An initialized serial.Serial object.
+    """
+    hue = 0
+    ring_count = max_radius - min_radius
+    intensity_grows = True
+    intensity = 0
+    growth_speed = 0.008
+    while True:
+        if hue < 360:
+            hue += hue_step_size
+        else:
+            hue = 0
+        if intensity_grows:
+            intensity += growth_speed
+            if intensity >= 1:
+                intensity_grows = False
+        else:
+            intensity -= growth_speed
+            if intensity <= 0:
+                intensity_grows = True
+        unit_values = []
+        for unit in range(0, UNITS):
+            distance = float(_get_distance_to_middle(unit))
+            if distance <= min_radius:
+                local_value = value
+            elif distance > max_radius:
+                local_value = 0
+            else:
+                # In addition to growth speed we slow it we take the current
+                # intensity into account which slows down the
+                # expansion/contraction nicely.
+                speed_multiplier = max(0.001, intensity)
+                # local_diff is the difference in brightness from the maximum
+                # value of brightness the tubes inside the minimum radius have.
+                local_diff = (100/ring_count*distance/speed_multiplier)/100
+                local_value = value*(1-local_diff)
+            local_value = local_value*intensity
+            # Make sure we pass on a well-defined value.
+            if local_value > 1:
+                local_value = 1
+            elif local_value < 0:
+                local_value = 0
+            r, g, b = _hsv_to_rgb(hue, saturation, local_value)
+            unit_values.append([unit, r, g, b])
+        set_color_units(ser, unit_values)
+        time.sleep(step_sleep)
+    _send_set_color_set()
+
+
+def hsv_chaser(ser, hue_step_size=3, value=1.0, saturation=0.8, max_beacons=5):
     """Rotate HSV (hue, saturation, value) color mapping.
 
     Args:
@@ -173,8 +296,12 @@ def rotate_hsv(ser, hue_step_size=10, value=1.0, saturation=0.8,
             r, g, b = _hsv_to_rgb(hue, saturation, unit_value)
             unit_values.append([unit, r, g, b])
         set_color_units(ser, unit_values)
-        time.sleep(0.05)
+        time.sleep(0.000001)
     _send_set_color_set()
+
+
+def twister(ser):
+    pass
 
 
 if __name__ == '__main__':
@@ -208,5 +335,9 @@ if __name__ == '__main__':
     else:
         if options.mode == 'hsv':
             rotate_hsv(ser)
+        elif options.mode == 'hsv_chaser':
+            hsv_chaser(ser)
+        elif options.mode == 'hsv_centered':
+            rotate_hsv_centered(ser)
         else:
             rotate_color_brightness(ser)
