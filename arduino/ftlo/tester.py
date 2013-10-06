@@ -1,6 +1,7 @@
 #!/usr/bin/python
 """Test script for light organ LED setup."""
 
+import datetime
 import math
 import optparse
 import serial
@@ -59,8 +60,8 @@ def _init_serial(port, baud_rate):
 def _send_unit_data(unit, red, green, blue):
     time.sleep(SERIAL_UNIT_WRITE_SLEEP)
     ser.write(SERIAL_DELIM)
-    # print unit, red, green, blue
     ser.write(chr(unit) + chr(red) + chr(green) + chr(blue))
+    # print unit, red, green, blue
 
 
 def _send_set_color_set():
@@ -187,13 +188,15 @@ def _hsv_to_rgb(hue, saturation, value):
     return int(244*r), int(244*g), int(244*b)
 
 
-def rotate_hsv(ser, step_sleep=0.1, hue_step_size=3, value=0.4, saturation=1):
+def rotate_hsv(ser, step_sleep=0.1, hue_step_size=3, value=0.4, saturation=1,
+               stop_after=0):
     """Rotate HSV (hue, saturation, value) color mapping.
 
     Args:
       ser: An initialized serial.Serial object.
     """
     hue = 0
+    time_started = datetime.datetime.now()
     while True:
         if hue < 360:
             hue += hue_step_size
@@ -205,11 +208,16 @@ def rotate_hsv(ser, step_sleep=0.1, hue_step_size=3, value=0.4, saturation=1):
             unit_values.append([unit, r, g, b])
         set_color_units(ser, unit_values)
         time.sleep(step_sleep)
-    _send_set_color_set()
+        _send_set_color_set()
+        if stop_after:
+            time_passed = (datetime.datetime.now() - time_started)
+            if (time_passed.seconds > stop_after):
+                return
 
 
 def rotate_hsv_centered(ser, min_radius=1, max_radius=15, step_sleep=0.1,
-                        hue_step_size=2, value=0.7, saturation=1):
+                        hue_step_size=2, value=0.7, saturation=1,
+                        stop_after=0):
     """Rotate HSV (hue, saturation, value) color mapping.
 
     Args:
@@ -220,6 +228,7 @@ def rotate_hsv_centered(ser, min_radius=1, max_radius=15, step_sleep=0.1,
     intensity_grows = True
     intensity = 0
     growth_speed = 0.008
+    time_started = datetime.datetime.now()
     while True:
         if hue < 360:
             hue += hue_step_size
@@ -259,10 +268,15 @@ def rotate_hsv_centered(ser, min_radius=1, max_radius=15, step_sleep=0.1,
             unit_values.append([unit, r, g, b])
         set_color_units(ser, unit_values)
         time.sleep(step_sleep)
-    _send_set_color_set()
+        _send_set_color_set()
+        if stop_after:
+            time_passed = (datetime.datetime.now() - time_started)
+            if (time_passed.seconds > stop_after):
+                return
 
 
-def hsv_chaser(ser, hue_step_size=3, value=1.0, saturation=0.8, max_beacons=5):
+def hsv_chaser(ser, hue_step_size=3, value=1.0, saturation=0.8, max_beacons=5,
+               stop_after=0):
     """Rotate HSV (hue, saturation, value) color mapping.
 
     Args:
@@ -274,6 +288,7 @@ def hsv_chaser(ser, hue_step_size=3, value=1.0, saturation=0.8, max_beacons=5):
     # Offset indicating the distance from the first LED unit to the current
     # position of the beacon.
     beacon_offset = 0
+    time_started = datetime.datetime.now()
     while True:
         if beacons > max_beacons:
             beacons = 1
@@ -297,7 +312,11 @@ def hsv_chaser(ser, hue_step_size=3, value=1.0, saturation=0.8, max_beacons=5):
             unit_values.append([unit, r, g, b])
         set_color_units(ser, unit_values)
         time.sleep(0.000001)
-    _send_set_color_set()
+        _send_set_color_set()
+        if stop_after:
+            time_passed = (datetime.datetime.now() - time_started)
+            if (time_passed.seconds > stop_after):
+                return
 
 
 def twister(ser):
@@ -339,5 +358,10 @@ if __name__ == '__main__':
             hsv_chaser(ser)
         elif options.mode == 'hsv_centered':
             rotate_hsv_centered(ser)
+        elif options.mode == 'all':
+            while True:
+                rotate_hsv(ser, stop_after=5*60)
+                rotate_hsv_centered(ser, stop_after=5*60)
+                hsv_chaser(ser, stop_after=2*60)
         else:
             rotate_color_brightness(ser)
