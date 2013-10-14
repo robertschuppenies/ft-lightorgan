@@ -19,7 +19,11 @@ FtloEmulator {
   setTube {
 	arg index, r, g, b;
 
-	this.socket.sendMsg("/organ/tube", index, r, g, b);
+	if (index.isInteger, {
+	  this.socket.sendMsg("/organ/tube", index, r, g, b);
+	}, {
+	  ("Error: received invalid tube index " ++ index).postln();
+	})
   }
 
 }

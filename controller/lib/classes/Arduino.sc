@@ -19,7 +19,12 @@ FtloArduino : Object {
   setTube {
 	arg index, r, g, b;
 
-	this.socket.putAll(Int8Array[255]);
-	this.socket.putAll(Int8Array[index, r, g, b]);
+	if (index.isInteger, {
+	  this.socket.putAll(Int8Array[255]);
+	  this.socket.putAll(Int8Array[index, r, g, b]);
+	}, {
+	  ("Error: received invalid tube index " ++ index).postln();
+	})
   }
+
 }
