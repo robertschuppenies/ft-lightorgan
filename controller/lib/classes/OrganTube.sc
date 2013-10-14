@@ -68,14 +68,14 @@ OrganTube : Object {
       result = 8 - tubeIndexIn;
     }, {
       if (tubeIndexIn < 26, {
-        result = 50 - (tubeIndexIn - 9);    
+        result = 50 - (tubeIndexIn - 9);
       }, {
         result = (tubeIndexIn - 26) + 9;
       });
     });
 
     ^result;
-    
+
   }
 
   update {
@@ -93,21 +93,13 @@ OrganTube : Object {
       || this.lastSentCache['b'] != b
     ), {
 
-      if (this.organ.oscSock != nil, {
-        this.organ.oscSock.sendMsg(
-          "/organ/tube",
-          this.tubeIndex,
-          //"rgb/",
-          r,
-          g,
-          b
-        );
+      if (this.organ.emulator != nil, {
+        this.organ.emulator.setTube(this.tubeIndex, r, g, b);
       });
 
-      if (this.organ.arduinoSock != nil, {
-        //("Sending update message for tube " ++ this.tubeIndex).postln();
-        this.organ.arduinoSock.putAll(Int8Array[255]);
-        this.organ.arduinoSock.putAll(Int8Array[this.arduinoTubeIndex(this.tubeIndex), r, g, b]);
+      if (this.organ.arduino != nil, {
+		this.organ.arduino.setTube(
+		  this.arduinoTubeIndex(this.tubeIndex), r, g, b);
       });
 
       this.lastSentCache['r'] = r;
@@ -132,7 +124,7 @@ OrganTube : Object {
     arg aBrightness;
 
     if (aBrightness < 0, {
-      aBrightness = 0;    
+      aBrightness = 0;
     });
 
     this.brightness = aBrightness;

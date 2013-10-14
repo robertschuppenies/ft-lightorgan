@@ -1,7 +1,7 @@
-Organ : Object {
+Organ {
 
-  var <>arduinoSock,
-    <>oscSock,
+  var <>arduino,
+	<>emulator,
     <>tubes,
     <>brightnessTestIsOn,
     <>updater,
@@ -21,17 +21,19 @@ Organ : Object {
 
     this.brightnessTestIsOn = false;
 
-    this.oscSock = nil;
+	this.emulator = nil;
     if (initParams['connectToVisualizer'], {
-      this.oscSock = NetAddr.new(initParams['address'], initParams['port']);
+	  "connectToVisualizer".postln();
+		this.emulator = FtloEmulator.new(
+			initParams['address'],
+		  	initParams['port']);
     });
 
-    this.arduinoSock = nil;
+    this.arduino = nil;
     if (initParams['connectToArduino'], {
-      this.arduinoSock = SerialPort.new(
-        initParams['arduinoAddress'],
-        initParams['arduinoBaudRate']
-      );
+      this.arduino = FtloArduino.new(
+	 	initParams['arduinoAddress'],
+		initParams['arduinoBaudRate']);
     });
 
     this.sleepModeRunning = false;
@@ -49,7 +51,7 @@ Organ : Object {
       this.tubes = this.tubes.add(tube);
 
     });
-    
+
     this.updater = Routine.new({
       while({true}, {
         this.update();
@@ -91,9 +93,6 @@ Organ : Object {
   update {
     var messageWasSent;
     //"Organ.update...".postln();
-    //if (this.arduinoSock != nil, {
-      //this.arduinoSock.putAll(Int9Array[255]);
-    //});
 
     this.tubes.do({
       arg tube;
@@ -109,12 +108,12 @@ Organ : Object {
       });*/
     });
 
-    if (this.arduinoSock != nil, {
-      this.arduinoSock.putAll(Int8Array[255, 255, 255, 255, 255, 255]);
+    if (this.arduino != nil, {
+      this.arduino.flush();
     });
 
-    if (this.oscSock != nil, {
-      this.oscSock.sendMsg("/organ/flush");
+    if (this.emulator != nil, {
+      this.emulator.flush();
     });
     messagePauseTime.wait();
     //"Organ.update done".postln();
@@ -213,10 +212,10 @@ Organ : Object {
           0.02.wait();
 
         });
-      
+
       });
-      
-    
+
+
     }.loop();
 
 
@@ -238,7 +237,7 @@ Organ : Object {
 
     updateTime = 0.1;
     t = 0.0;
-    
+
     brightnessCycle = Env(
       [0,   1,    1,    0,  0],
       [ 0.4,  0.1,  0.4,  0.1 ] * duration,
@@ -288,7 +287,7 @@ Organ : Object {
         i = i + 1;
       });
     }.loop();
-  
+
   }
 
   doBrightnessTest {
@@ -313,7 +312,7 @@ Organ : Object {
 
     while ({ brightnessTestIsOn }, {
       sineVal = sineEnv.next();
-      
+
       this.tubes.do({
         arg tube;
 
