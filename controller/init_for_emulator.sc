@@ -25,5 +25,4 @@ s.doWhenBooted({
     organ.allLightsOff();
     visualizer.start_visualizer();
 });
-
 )

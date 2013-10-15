@@ -1,14 +1,18 @@
 Organ {
 
   var <>arduino,
-	<>emulator,
+    <>emulator,
     <>tubes,
     <>brightnessTestIsOn,
     <>updater,
     <>sleepModeAnimator,
     <>sleepModeRunning;
+  // Time to wait between sending tube updates. This is a limit by the Arduino
+  // used (determined emperically).
   classvar <tubePauseTime = 0.001,
-    <messagePauseTime = 0.04;
+  // Time to wait between telling the Arduino to write a new set of
+  // colors. This is a limit by the LED strip used (determined emperically).
+  <messagePauseTime = 0.04;
 
   *new {
     arg initParams;
@@ -21,44 +25,66 @@ Organ {
 
     this.brightnessTestIsOn = false;
 
-	this.emulator = nil;
+    this.emulator = nil;
     if (initParams['connectToVisualizer'], {
-	  "connectToVisualizer".postln();
-		this.emulator = FtloEmulator.new(
-			initParams['address'],
-		  	initParams['port']);
+      "connectToVisualizer".postln();
+        this.emulator = FtloEmulator.new(
+            initParams['address'],
+            initParams['port']);
     });
 
     this.arduino = nil;
     if (initParams['connectToArduino'], {
       this.arduino = FtloArduino.new(
-	 	initParams['arduinoAddress'],
-		initParams['arduinoBaudRate']);
+        initParams['arduinoAddress'],
+        initParams['arduinoBaudRate']);
     });
 
     this.sleepModeRunning = false;
 
     // initialize organ tubes
-
     this.tubes = [];
-
     for(0, 51, {
       arg i;
-      tube = OrganTube.new((
-        index: i,
-        organ: this
-      ));
+      tube = OrganTube.new((index: i));
       this.tubes = this.tubes.add(tube);
-
     });
 
     this.updater = Routine.new({
       while({true}, {
-        this.update();
+        this.pushUpdate();
       })
     });
-
   }
+
+  // Push an update to the organ. This function will query all tubes for their
+  // color values and then send the information to light organ.
+  pushUpdate {
+    this.tubes.do({
+      arg tube;
+      var color, r, g, b;
+
+      color = tube.getColorForSent(true);
+      if (color != nil, {
+        r = (color.alpha * color.red * 254).round().asInteger();
+        g = (color.alpha * color.green * 254).round().asInteger();
+        b = (color.alpha * color.blue * 254).round().asInteger();
+        if (this.emulator != nil, {
+          this.emulator.setTube(tube.tubeIndex, r, g, b);
+        });
+        if (this.arduino != nil, {
+          this.arduino.setTube(
+            tube.physicalTubeIndex[tube.tubeIndex], r, g, b);
+        });
+        tubePauseTime.wait();
+      });
+    });
+
+    if (this.arduino != nil, { this.arduino.flush(); });
+    if (this.emulator != nil, { this.emulator.flush(); });
+    messagePauseTime.wait();
+  }
+
 
   start_updating {
     SystemClock.play(this.updater);
@@ -70,53 +96,25 @@ Organ {
       arg tube;
       tube.turn_off();
     });
+    this.pushUpdate();
   }
 
-  /**
-   *  Set the hue of all the tubes at once.
-   **/
+  // Set the hue of all the tubes at once.
+  //
+  // Args:
+  //   hue: A hue value in the range of [0,1].
   set_tubes_hue {
-    arg newHue;
+    arg hue;
+    var color;
 
-    var newColor;
-
-    newColor = Color.hsv(newHue, 1.0, 1.0);
-
+    color = Color.hsv(hue, 1, 1);
     this.tubes.do({
       arg tube;
 
-      tube.color = newColor;
+      tube.color.red = color.red;
+      tube.color.green = color.green;
+      tube.color.blue = color.blue;
     });
-
-  }
-
-  update {
-    var messageWasSent;
-    //"Organ.update...".postln();
-
-    this.tubes.do({
-      arg tube;
-      //("Updating tube " ++ tube.tubeIndex).postln();
-      messageWasSent = tube.update();
-      tubePauseTime.wait();
-
-      /*if (messageWasSent == true, {
-        "tubePauseTime.wait()".postln();
-        tubePauseTime.wait();
-      }, {
-        0.001.wait();
-      });*/
-    });
-
-    if (this.arduino != nil, {
-      this.arduino.flush();
-    });
-
-    if (this.emulator != nil, {
-      this.emulator.flush();
-    });
-    messagePauseTime.wait();
-    //"Organ.update done".postln();
   }
 
   startup_animation_duration {
@@ -133,12 +131,13 @@ Organ {
         this.tubes[i].color.red = 0;
         this.tubes[i].color.blue = 0;
         this.tubes[i].color.green = 1;
-        this.tubes[i].brightness = 0.8;
+        this.tubes[i].alpha = 0.8;
         this.tubes[26 + i].color.red = 0;
         this.tubes[26 + i].color.blue = 0;
         this.tubes[26 + i].color.green = 1;
-        this.tubes[26 + i].brightness = 0.8;
+        this.tubes[26 + i].alpha = 0.8;
 
+        this.pushUpdate();
         (0.5 * this.startup_animation_duration() / 25.0).wait();
       });
 
@@ -149,15 +148,17 @@ Organ {
           tube.color.red = 0;
           tube.color.blue = 0;
           tube.color.green = 1;
-          tube.brightness = 1.0;
+          tube.alpha = 1.0;
+          this.pushUpdate();
         });
         0.7.wait();
 
         this.tubes.do({
           arg tube;
 
-          tube.brightness = 0.0;
+          tube.alpha = 0.0;
         });
+        this.pushUpdate();
         0.3.wait();
       })
     });
@@ -257,7 +258,7 @@ Organ {
         this.tubes.do({
           arg tube;
 
-          tube.brightness = brightness;
+          tube.alpha = brightness;
 
         });
         t = t + updateTime;
@@ -283,7 +284,7 @@ Organ {
       i = 0;
       while({ i < this.tubes.size() }, {
         led = this.tubes[i].color.red = 1.0;
-        this.update();
+        this.pushUpdate();
         i = i + 1;
       });
     }.loop();
@@ -319,9 +320,7 @@ Organ {
         tube.color.red = sineVal;
         tube.color.green = sineVal;
         tube.color.blue = sineVal;
-
-        tube.update();
-
+        this.sentUpdate();
       });
 
       0.025.wait();

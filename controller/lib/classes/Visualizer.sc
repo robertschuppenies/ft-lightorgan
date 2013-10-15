@@ -55,7 +55,7 @@ Visualizer : Object {
     this.sleepMonitorHistory = [];
     this.sleepMonitorVarianceWasUnderThresholdCount = 0;
 
-    
+
     //// keep track of last Nth value
     //n = 20;
     //valuesSincePrevious = n;
@@ -82,10 +82,10 @@ Visualizer : Object {
         //});
 
       //});
-      
+
 
       //0.05.wait();
-    
+
     //}.loop();
 
 
@@ -175,7 +175,7 @@ Visualizer : Object {
         });
 
         if (this.visualizerisRunning == false, {
-          this.start_visualizer();    
+          this.start_visualizer();
         });
 
       });
@@ -219,8 +219,8 @@ Visualizer : Object {
     pitchMagnitudes.do({
       arg pitchMag, i;
 
-      this.organ.tubes[i].set_brightness(pitchMag);
-      this.organ.tubes[26 + i].set_brightness(pitchMag);
+      this.organ.tubes[i].alpha = pitchMag;
+      this.organ.tubes[26 + i].alpha = pitchMag;
     });
   }
 
