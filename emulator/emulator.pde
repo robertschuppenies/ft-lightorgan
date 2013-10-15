@@ -2,9 +2,10 @@
 // started 6/22/2013, Luke Dahl
 // version b adds receiving Open Sound Control (OSC) messages and test functions that sends OSC
 
-// globals
-float g_width = 20;            // the width of a tube
-float g_length_scale = 9.0;    // scaling from the nominal tube heights to the drawing height
+// the width of a tube
+float g_width = 20;
+// scaling from the nominal tube heights to the drawing height
+float g_length_scale = 9.0;
 
 // the length of the tubes in order from left-to-right
 int[] tube_lengths_rear =  {29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 40, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29};
@@ -13,10 +14,20 @@ int g_num_front_row = tube_lengths_front.length;
 int g_num_rear_row = tube_lengths_rear.length;
 int g_num_total_tubes = tube_lengths_front.length + tube_lengths_rear.length;
 
-// tubes are numbered front row left-to-right, followed by back row left-to-right
+// Logically, tubes are numbered front row left-to-right, followed by back row
+// left-to-right.
 int g_num_tubes = g_num_front_row + g_num_rear_row;
+// A mapping of logical tube positions to physical tube positions (see Organ.sc
+// in the controller library for details).
+int[] physical_tube_index = {8, 7, 6, 5, 4, 3, 2, 1, 0, 50, 49, 48, 47, 46,
+                             45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34,
+                             9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                             21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+                             33};
+
 Tube[] tubes = new Tube[g_num_tubes];
 PVector[] tube_loc = new PVector[g_num_tubes];
+
 
 // network communication
 import oscP5.*;
@@ -119,7 +130,7 @@ void oscOrgan(int tube_num, int r, int g, int b)
     println("WARNING: received blue value > 255, ignoring: " + r);
     return;
   }
-  tubes[tube_num].setColor(r, g, b);
+  tubes[physical_tube_index[tube_num]].setColor(r, g, b);
 }
 
 // this catches any other osc messages
@@ -128,8 +139,8 @@ void oscEvent(OscMessage theOscMessage)
   if(theOscMessage.isPlugged()==false)
   {
     print("WARNING: received an unkown OSC message.");
-    print(" addrpattern: "+theOscMessage.addrPattern());
-    println("; typetag: "+theOscMessage.typetag());
+    print(" addrpattern: " + theOscMessage.addrPattern());
+    println("; typetag: " + theOscMessage.typetag());
   }
 }
 

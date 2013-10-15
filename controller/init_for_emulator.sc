@@ -8,21 +8,14 @@ Instr.dir = "lib/Instr".resolveRelative();
 Instr.loadAll();
 
 s.doWhenBooted({
-	var organ, visualizer;
+  var emulator, organ, visualizer;
 
-    organ = FtloOrgan.new((
-      connectToVisualizer: true,
-      address: "127.0.0.1",
-      port: 5001,
-      connectToArduino: false,
-      arduinoBaudRate: 115200
-    ));
-    visualizer = FtloVisualizer.new((
-      organ: organ
-    ));
+  emulator = FtloEmulator.new("127.0.0.1", 5001);
+  organ = FtloOrgan([emulator]);
+  visualizer = FtloVisualizer.new((organ: organ));
 
-    organ.start_updating();
-    organ.allLightsOff();
-    visualizer.start_visualizer();
+  organ.start_updating();
+  organ.allLightsOff();
+  visualizer.start_visualizer();
 });
 )

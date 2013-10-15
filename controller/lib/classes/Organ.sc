@@ -6,14 +6,13 @@ FtloOrgan {
   // colors. This is a limit by the LED strip used (determined emperically).
   <messagePauseTime = 0.04;
 
-  var <>arduino,
-  <>emulator,
+  var <> connectors,
   <>brightnessTestIsOn,
-  // A mapping of controller LED index/arry position to physical LED index. Due
-  // to how LEDs are physically wired the first LED on the board is not indexed
-  // as 0. Instead, physical LED indexing starts at the controller-index
-  // position 0 and then moves clockwise. The last LED has the controller index
-  // 9.
+  // A mapping of controller LED index/array position to physical LED
+  // index. Due to how LEDs are physically wired the first LED on the board is
+  // not indexed as 0. Instead, physical LED indexing starts at the
+  // controller-index position 0 and then moves clockwise. The last LED has the
+  // controller index 9.
   //
   // The front row as 26 (13+13) tubes, the back row has 25 (12+1+12) tubes.
   //
@@ -36,12 +35,12 @@ FtloOrgan {
   <>updater;
 
   *new {
-    arg initParams;
-    ^super.new.init(initParams);
+    arg connectors;
+    ^super.new.init(connectors);
   }
 
   init {
-    arg initParams;
+    arg connectors;
     var tube;
 
     this.physicalTubeIndex = [ 8, 7, 6, 5, 4, 3, 2, 1, 0, 50, 49, 48, 47, 46,
@@ -49,22 +48,7 @@ FtloOrgan {
       15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
       33 ];
 
-    this.emulator = nil;
-    if (initParams['connectToVisualizer'], {
-      "connectToVisualizer".postln();
-        this.emulator = FtloEmulator.new(
-            initParams['address'],
-            initParams['port']);
-    });
-
-    this.arduino = nil;
-    if (initParams['connectToArduino'], {
-      this.arduino = FtloArduino.new(
-        initParams['arduinoAddress'],
-        initParams['arduinoBaudRate']);
-    });
-
-    // initialize organ tubes
+    this.connectors = connectors;
     this.tubes = [];
     for(0, 51, {
       arg i;
@@ -93,22 +77,16 @@ FtloOrgan {
         r = (color.alpha * color.red * 254).round().asInteger();
         g = (color.alpha * color.green * 254).round().asInteger();
         b = (color.alpha * color.blue * 254).round().asInteger();
-        if (this.emulator != nil, {
-          this.emulator.setTube(index, r, g, b);
-        });
-        if (this.arduino != nil, {
-          this.arduino.setTube(
-            this.physicalTubeIndex[index], r, g, b);
+        this.connectors.do({
+          arg connector;
+          connector.setTube(this.physicalTubeIndex[index], r, g, b);
         });
         tubePauseTime.wait();
       });
     });
-
-    if (this.arduino != nil, { this.arduino.flush(); });
-    if (this.emulator != nil, { this.emulator.flush(); });
+    this.connectors.do({ arg connector; connector.flush() });
     messagePauseTime.wait();
   }
-
 
   start_updating {
     SystemClock.play(this.updater);
