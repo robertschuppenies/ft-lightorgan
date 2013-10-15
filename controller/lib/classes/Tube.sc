@@ -1,5 +1,4 @@
 Tube {
-
   // Maximum brightness is smaller than 1.0 because the sequential wiring of
   // the LEDs leads to a voltage drop. Due to this, LEDs towards the end show a
   // color skew which is less visible when driving all LEDs with less
@@ -9,27 +8,24 @@ Tube {
   // would accept. This is because we declared 255 as a delimiter value.
   classvar <maxColorValue=254;
 
-  var <>physicalTubeIndex,
-  <>index,
-  // Color of the tube.
-  <>color,
+  // Users can modify 'color' directly, but 'lastColor' is only used to cache
+  // values and reduce the number of updates sent.
+  var <>color,
   <>lastColor,
   // Brightness of the tube. A value of zero means the tube is turned off. For
   // some reason we cannot reuse the alpha attribute of Color (setting one tube
   // affected all tubes) and instead have to use separate values to track
-  // brightness.
+  // brightness. Same as with 'lastColor', 'lastAlpha' is used for caching.
   <>alpha,
   <>lastAlpha,
+  // Indicate whether the current color values hvae be sent.
   <>updateSent;
 
   *new {
-    arg index;
-    ^super.new.init(index;);
+    ^super.new.init();
   }
 
   init {
-    arg index;
-    this.index = index.asInteger();
     this.color = Color();
     // Initialize to undefined values so that a first change to off is picked
     // up as well.
@@ -38,32 +34,6 @@ Tube {
     this.lastColor = Color(-1, -1, -1, -1);
     // We start with no changes, so no sending necessary.
     this.updateSent = true;
-
-    // A mapping of controller LED index/arry position to physical LED
-    // index. Due to how LEDs are physically wired the first LED on the board
-    // is not indexed as 0. Instead, physical LED indexing starts at the
-    // controller-index position 0 and then moves clockwise. The last LED has
-    // the controller index 9.
-    //
-    // The front row as 26 (13+13) tubes, the back row has 25 (12+1+12) tubes.
-    //
-    // physical indices ..
-    // backrow  : 9-10-11-12-                .. -31-32-33
-    // front row: 8-7-6-5-4-3-2-1-0-51-50-49 .. -36-35-34
-    //
-    // controller indices:
-    // backrow  : 26-27-28-  .. -50-51
-    // front row: 0-1-2-3-4- .. -24-25
-    //
-    // We define this as an instance variable because creating an Array as a
-    // classvar always gives me a "syntax error, unexpected CLASSNAME"
-    // exception. My(schuppe) supercollider understanding is too limited, but
-    // maybe it is because you cannot hvae mutable objects as classvars.
-    this.physicalTubeIndex = [ 8, 7, 6, 5, 4, 3, 2, 1, 0, 50, 49, 48, 47, 46,
-      45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 9, 10, 11, 12, 13, 14,
-      15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
-      33 ];
-
   }
 
   // Get the LED values that should be sent when updating a tube. The returned
@@ -133,6 +103,4 @@ Tube {
   is_on {
     ^(this.alpha != 0);
   }
-
-
 }

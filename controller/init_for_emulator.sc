@@ -1,7 +1,7 @@
 (
 s.quit;
 s.boot;
-s.options.inDevice = "Line In";
+s.options.inDevice = "Built-in Microphone";
 s.options.memSize = 4096;
 
 Instr.dir = "lib/Instr".resolveRelative();

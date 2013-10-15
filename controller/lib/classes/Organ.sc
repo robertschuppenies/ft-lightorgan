@@ -1,18 +1,39 @@
 FtloOrgan {
-
-  var <>arduino,
-    <>emulator,
-    <>tubes,
-    <>brightnessTestIsOn,
-    <>updater,
-    <>sleepModeAnimator,
-    <>sleepModeRunning;
   // Time to wait between sending tube updates. This is a limit by the Arduino
   // used (determined emperically).
   classvar <tubePauseTime = 0.001,
   // Time to wait between telling the Arduino to write a new set of
   // colors. This is a limit by the LED strip used (determined emperically).
   <messagePauseTime = 0.04;
+
+  var <>arduino,
+  <>emulator,
+  <>brightnessTestIsOn,
+  // A mapping of controller LED index/arry position to physical LED index. Due
+  // to how LEDs are physically wired the first LED on the board is not indexed
+  // as 0. Instead, physical LED indexing starts at the controller-index
+  // position 0 and then moves clockwise. The last LED has the controller index
+  // 9.
+  //
+  // The front row as 26 (13+13) tubes, the back row has 25 (12+1+12) tubes.
+  //
+  // physical indices ..
+  // backrow  : 9-10-11-12-                .. -31-32-33
+  // front row: 8-7-6-5-4-3-2-1-0-51-50-49 .. -36-35-34
+  //
+  // controller indices:
+  // backrow  : 26-27-28-  .. -50-51
+  // front row: 0-1-2-3-4- .. -24-25
+  //
+  // We define this as an instance variable because creating an Array as a
+  // classvar always gives me a "syntax error, unexpected CLASSNAME"
+  // exception. My(schuppe) supercollider understanding is too limited, but
+  // maybe it is because you cannot hvae mutable objects as classvars.
+  <>physicalTubeIndex,
+  <>sleepModeAnimator,
+  <>sleepModeRunning,
+  <>tubes,
+  <>updater;
 
   *new {
     arg initParams;
@@ -23,7 +44,10 @@ FtloOrgan {
     arg initParams;
     var tube;
 
-    this.brightnessTestIsOn = false;
+    this.physicalTubeIndex = [ 8, 7, 6, 5, 4, 3, 2, 1, 0, 50, 49, 48, 47, 46,
+      45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 9, 10, 11, 12, 13, 14,
+      15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+      33 ];
 
     this.emulator = nil;
     if (initParams['connectToVisualizer'], {
@@ -40,13 +64,11 @@ FtloOrgan {
         initParams['arduinoBaudRate']);
     });
 
-    this.sleepModeRunning = false;
-
     // initialize organ tubes
     this.tubes = [];
     for(0, 51, {
       arg i;
-      this.tubes = this.tubes.add(Tube(i));
+      this.tubes = this.tubes.add(Tube());
     });
 
     this.updater = Routine.new({
@@ -54,13 +76,16 @@ FtloOrgan {
         this.pushUpdate();
       })
     });
+
+    this.brightnessTestIsOn = false;
+    this.sleepModeRunning = false;
   }
 
   // Push an update to the organ. This function will query all tubes for their
   // color values and then send the information to light organ.
   pushUpdate {
     this.tubes.do({
-      arg tube;
+      arg tube, index;
       var color, r, g, b;
 
       color = tube.getColorForSent(true);
@@ -69,11 +94,11 @@ FtloOrgan {
         g = (color.alpha * color.green * 254).round().asInteger();
         b = (color.alpha * color.blue * 254).round().asInteger();
         if (this.emulator != nil, {
-          this.emulator.setTube(tube.index, r, g, b);
+          this.emulator.setTube(index, r, g, b);
         });
         if (this.arduino != nil, {
           this.arduino.setTube(
-            tube.physicalTubeIndex[tube.index], r, g, b);
+            this.physicalTubeIndex[index], r, g, b);
         });
         tubePauseTime.wait();
       });
