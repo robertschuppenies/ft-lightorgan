@@ -10,14 +10,14 @@ Instr.loadAll();
 s.doWhenBooted({
 	var organ, visualizer;
 
-    organ = Organ.new((
+    organ = FtloOrgan.new((
       connectToVisualizer: true,
       address: "127.0.0.1",
       port: 5001,
       connectToArduino: false,
       arduinoBaudRate: 115200
     ));
-    visualizer = Visualizer.new((
+    visualizer = FtloVisualizer.new((
       organ: organ
     ));
 

@@ -1,4 +1,4 @@
-Visualizer : Object {
+FtloVisualizer : Object {
   var <>freqMagnitudeToPitchMap,
     <>organ,
     <>hueUpdater,

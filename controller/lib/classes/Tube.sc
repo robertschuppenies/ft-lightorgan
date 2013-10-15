@@ -1,4 +1,4 @@
-OrganTube : Object {
+Tube {
 
   // Maximum brightness is smaller than 1.0 because the sequential wiring of
   // the LEDs leads to a voltage drop. Due to this, LEDs towards the end show a
@@ -10,7 +10,7 @@ OrganTube : Object {
   classvar <maxColorValue=254;
 
   var <>physicalTubeIndex,
-  <>tubeIndex,
+  <>index,
   // Color of the tube.
   <>color,
   <>lastColor,
@@ -23,13 +23,13 @@ OrganTube : Object {
   <>updateSent;
 
   *new {
-    arg initParams;
-    ^super.new.init(initParams;);
+    arg index;
+    ^super.new.init(index;);
   }
 
   init {
-    arg initParams;
-    this.tubeIndex = initParams['index'].asInteger();
+    arg index;
+    this.index = index.asInteger();
     this.color = Color();
     // Initialize to undefined values so that a first change to off is picked
     // up as well.

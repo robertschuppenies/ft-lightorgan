@@ -1,4 +1,4 @@
-Organ {
+FtloOrgan {
 
   var <>arduino,
     <>emulator,
@@ -46,8 +46,7 @@ Organ {
     this.tubes = [];
     for(0, 51, {
       arg i;
-      tube = OrganTube.new((index: i));
-      this.tubes = this.tubes.add(tube);
+      this.tubes = this.tubes.add(Tube(i));
     });
 
     this.updater = Routine.new({
@@ -70,11 +69,11 @@ Organ {
         g = (color.alpha * color.green * 254).round().asInteger();
         b = (color.alpha * color.blue * 254).round().asInteger();
         if (this.emulator != nil, {
-          this.emulator.setTube(tube.tubeIndex, r, g, b);
+          this.emulator.setTube(tube.index, r, g, b);
         });
         if (this.arduino != nil, {
           this.arduino.setTube(
-            tube.physicalTubeIndex[tube.tubeIndex], r, g, b);
+            tube.physicalTubeIndex[tube.index], r, g, b);
         });
         tubePauseTime.wait();
       });
