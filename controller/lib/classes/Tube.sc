@@ -73,23 +73,28 @@ Tube {
 
     if (this.color.red != this.lastColor.red, {
       this.lastColor.red = this.color.red;
-      updateSent = false;
+      this.updateSent = false;
     });
     if (this.color.green != this.lastColor.green, {
       this.lastColor.green = this.color.green;
-      updateSent = false;
+      this.updateSent = false;
     });
     if (this.color.blue != this.lastColor.blue, {
       this.lastColor.blue = this.color.blue;
-      updateSent = false;
+      this.updateSent = false;
     });
-    if (this.alpha != this.lastAlpha, {
-      this.lastAlpha = this.alpha;
-      updateSent = false;
-    });
-    this.color.alpha = this.alpha;
+    if ((this.alpha == 0) && (this.lastAlpha == 0), {
+	  // shortcut: If the tube was turned off last cycle and is still turned
+	  // off, no need to update.
+      this.updateSent = true;
+    }, {
+	  this.lastAlpha = this.alpha;
+	  this.updateSent = false;
+	});
 
-    if (updateSent == false, {
+    if (this.updateSent == false, {
+	  this.color.alpha = this.alpha;
+	  this.updateSent = true;
       ^this.color;
     }, {
       ^nil;
