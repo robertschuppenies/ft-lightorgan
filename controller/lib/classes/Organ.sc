@@ -50,7 +50,7 @@ FtloOrgan {
 
     this.connectors = connectors;
     this.tubes = [];
-    for(0, 51, {
+    for(0, 50, {
       arg i;
       this.tubes = this.tubes.add(Tube());
     });
@@ -127,45 +127,19 @@ FtloOrgan {
     var startupAnimationRunner;
 
     startupAnimationRunner = Routine({
-      26.do({
+      51.do({
         arg i;
 
         this.tubes[i].color.red = 0;
         this.tubes[i].color.blue = 0;
         this.tubes[i].color.green = 1;
         this.tubes[i].alpha = 0.8;
-        this.tubes[26 + i].color.red = 0;
-        this.tubes[26 + i].color.blue = 0;
-        this.tubes[26 + i].color.green = 1;
-        this.tubes[26 + i].alpha = 0.8;
-
         this.pushUpdate();
-        (0.5 * this.startup_animation_duration() / 25.0).wait();
+        (0.1 * this.startup_animation_duration() / 25.0).wait();
       });
-
-      3.do({
-        this.tubes.do({
-          arg tube;
-
-          tube.color.red = 0;
-          tube.color.blue = 0;
-          tube.color.green = 1;
-          tube.alpha = 1.0;
-          this.pushUpdate();
-        });
-        0.7.wait();
-
-        this.tubes.do({
-          arg tube;
-
-          tube.alpha = 0.0;
-        });
-        this.pushUpdate();
-        0.3.wait();
-      })
+      this.allLightsOff();
     });
     SystemClock.play(startupAnimationRunner);
-
   }
 
   /*doPositionTest {

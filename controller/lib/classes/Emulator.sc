@@ -13,7 +13,8 @@ FtloEmulator {
   }
 
   flush {
-	this.socket.sendMsg("/organ/flush");
+	// TODO(schuppe): add support for '/organ/flush' messages to emulator.
+	// this.socket.sendMsg("/organ/flush");
   }
 
   setTube {

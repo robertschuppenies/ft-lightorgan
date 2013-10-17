@@ -1,105 +1,114 @@
 // a simulator for the visuals of the light organ
 // started 6/22/2013, Luke Dahl
-// version b adds receiving Open Sound Control (OSC) messages and test functions that sends OSC
+
+// network communication
+import oscP5.*;
+import netP5.*;
+OscP5 oscP5;
+
+// port for receiving OSC messages
+int g_osc_port = 5001;
+
+// The length of all tubes, from left to right, front to back.
+int [] g_tube_lengths = {
+  // front row
+  20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 32, 31, 30, 29, 28, 27,
+  26, 25, 24, 23, 22, 21, 20,
+  // back row
+  29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 40, 39, 38, 37, 36, 35,
+  34, 33, 32, 31, 30, 29};
+
+// A mapping of logical LED order[array position X] to physical LED order[value
+// at array position X] (see Organ.sc in the controller library for details).
+int[] g_physical_tube_positions = {
+  // front row
+  8, 7, 6, 5, 4, 3, 2, 1, 0, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39,
+  38, 37, 36, 35, 34,
+  // back row
+  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+  28, 29, 30, 31, 32, 33};
+
+int g_num_front_row = 26;
+int g_num_back_row = 25;
+int g_num_all_rows = g_num_front_row + g_num_back_row;
 
 // the width of a tube
 float g_width = 20;
 // scaling from the nominal tube heights to the drawing height
 float g_length_scale = 9.0;
 
-// the length of the tubes in order from left-to-right
-int[] tube_lengths_rear =  {29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 40, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29};
-int[] tube_lengths_front = {20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20};
-int g_num_front_row = tube_lengths_front.length;
-int g_num_rear_row = tube_lengths_rear.length;
-int g_num_total_tubes = tube_lengths_front.length + tube_lengths_rear.length;
-
-// Logically, tubes are numbered front row left-to-right, followed by back row
-// left-to-right.
-int g_num_tubes = g_num_front_row + g_num_rear_row;
-// A mapping of logical tube positions to physical tube positions (see Organ.sc
-// in the controller library for details).
-int[] physical_tube_index = {8, 7, 6, 5, 4, 3, 2, 1, 0, 50, 49, 48, 47, 46,
-                             45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34,
-                             9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-                             21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
-                             33};
-
-Tube[] tubes = new Tube[g_num_tubes];
-PVector[] tube_loc = new PVector[g_num_tubes];
+// An array of tube positions, each position at an index matching it's logical
+// position. Note that this doesn't match 'g_tubes', but it makes computation
+// of position a lot easier.
+PVector[] g_tube_loc = new PVector[g_num_all_rows];
+// An array of all tubes, each tube at an index matching it's physical position.
+Tube[] g_tubes = new Tube[g_num_all_rows];
 
 
-// network communication
-import oscP5.*;
-import netP5.*;
-OscP5 oscP5;
-int g_osc_port = 5001;        // port for receiving OSC messages
-NetAddress myRemoteLocation;  // where to send test OSC messages
-
-void setup()
-{
-  size(1200, 800);
-
-  initOSC();
-  initTubeLocations();        // TEST
-
-  // init front tubes
-  for (int i = 0; i < g_num_front_row; i++) {
-    tubes[i] = new Tube(tube_loc[i], tube_lengths_front[i]*g_length_scale);
-  }
-  // init rear tubes
-  for (int i = 0; i < g_num_rear_row; i++) {
-    PVector loc = new PVector(width/2, height/2);
-    tubes[i+g_num_front_row] = new Tube(tube_loc[i+g_num_front_row], tube_lengths_rear[i]*g_length_scale);
-  }
-
-  initTestColors();    // TEST
-}
-
-void draw()
-{
-  background(color(60,60,60,255));
-
-  updateTestColors();    // TEST
-
-  // draw rear tubes
-  for (int i = 0; i < g_num_rear_row; i++)
-  {
-    tubes[i+g_num_front_row].draw();
-  }
-  // then draw front tubes
-  for (int i = 0; i < g_num_front_row; i++)
-  {
-    tubes[i].draw();
-  }
-}
-
-// calculate the locations of the tubes along an arc to approximate a 3D view with the tubes layed out in curve
+// Calculate the locations of the tubes along an arc to approximate a 3D view
+// with the tubes layed out in curve.
 void initTubeLocations()
 {
   PVector arc_center = new PVector(width/2, height/2+2000);
   float arc_radius = 1800;
   float arc_span = 0.15*PI;        // how many radians does our arc span?
-  float phase_inc = arc_span/g_num_tubes;
+  float phase_inc = arc_span/g_num_all_rows;
   float phase_start = 0.5*PI - 0.5*arc_span;
 
   // front row: even locations
   for (int i=0; i < g_num_front_row; i++)
   {
     float phase = phase_start + 2*i*phase_inc;
-    tube_loc[i] = new PVector(arc_radius*cos(phase), -arc_radius*sin(phase));
-    tube_loc[i].add(arc_center);
+    g_tube_loc[i] = new PVector(arc_radius*cos(phase), -arc_radius*sin(phase));
+    g_tube_loc[i].add(arc_center);
   }
-
-  // rear row: odd locations
-  for (int i=0; i < g_num_rear_row; i++)
+  // back row: odd locations
+  for (int i=0; i < g_num_back_row; i++)
   {
     float phase = phase_start + (2*i+1) * phase_inc;
-    tube_loc[i+g_num_front_row] = new PVector(arc_radius*cos(phase), -arc_radius*sin(phase));
-    tube_loc[i+g_num_front_row].add(arc_center);
+    g_tube_loc[i+g_num_front_row] = new PVector(arc_radius*cos(phase),
+                                                -arc_radius*sin(phase));
+    g_tube_loc[i+g_num_front_row].add(arc_center);
   }
-
 }
+
+// Set up emulator.
+void setup()
+{
+  int physical_index = -1;
+
+  size(1200, 800);
+  initOSC();
+  initTubeLocations();
+  // Initialize tubes. We compute the physical index based on
+  // g_physical_tube_positions. Notice that we have use the reverse for
+  // locations (via the offset) to align left-right order (otherwise it would
+  // be reversed).
+  for (int i = 0; i < g_physical_tube_positions.length; i++) {
+    if (i < g_num_front_row) {
+      int offset = g_num_front_row-1;
+      physical_index = g_physical_tube_positions[offset-i];
+    } else {
+      int offset = g_num_front_row+g_num_all_rows-1;
+      physical_index = g_physical_tube_positions[offset-i];
+    }
+    g_tubes[physical_index] = new Tube(g_tube_loc[i],
+                                       g_tube_lengths[i]*g_length_scale);
+  }
+  initTestColors();
+}
+
+// Update canvas.
+void draw()
+{
+  background(color(60,60,60,255));
+  for (int i = 0; i < g_num_all_rows; i++)
+  {
+    g_tubes[i].draw();
+  }
+  updateTestColors();
+}
+
 
 // OSC listener stuff -------------------------
 void initOSC()
@@ -114,7 +123,7 @@ void initOSC()
 void oscOrgan(int tube_num, int r, int g, int b)
 {
   /* print("OSC received: " + tube_num + " " + r + " " + g + " " + b + "\n"); */
-  if (tube_num >= g_num_total_tubes) {
+  if (tube_num >= g_num_all_rows) {
     println("WARNING: tube_num received > maximum: " + tube_num);
     return;
   }
@@ -130,7 +139,10 @@ void oscOrgan(int tube_num, int r, int g, int b)
     println("WARNING: received blue value > 255, ignoring: " + r);
     return;
   }
-  tubes[physical_tube_index[tube_num]].setColor(r, g, b);
+  /* println(physical_tube_index[tube_num] + "-" + tube_num); */
+  /* tubes[physical_tube_index[tube_num]].setColor(r, g, b); */
+  println(tube_num + "-" + tube_num);
+  g_tubes[tube_num].setColor(r, g, b);
 }
 
 // this catches any other osc messages
@@ -193,10 +205,11 @@ class Tube
 
 // Test Code (this is a bit hacky for now, e.g. uses a bunch of globals!) --------------------------
 // This code sends OSC messages to emulate what might be received from the sound processing hardware
-int[][] g_test_colors = new int[3][g_num_tubes];    // these are initialized to zero
+int[][] g_test_colors = new int[3][g_num_all_rows];    // these are initialized to zero
 int g_test_frame = 0;                               // how many graphics frames have passed?
 int g_test_index = 0;
 boolean g_test_run = false;
+NetAddress myRemoteLocation;  // where to send test OSC messages
 
 // this func sets a certain number of random tubes to random colors
 void initTestColors()
@@ -208,7 +221,7 @@ void initTestColors()
   int N = 15;
   for (int i = 0; i < N; i++)
   {
-    int j = floor(random(g_num_tubes));
+    int j = floor(random(g_num_all_rows));
     g_test_colors[0][j] = floor(random(255));
     g_test_colors[1][j] = floor(random(255));
     g_test_colors[2][j] = floor(random(255));
@@ -228,14 +241,15 @@ void updateTestColors()
       // iterate forwards over the first row then backwards over the second
       for (int i = 0; i < g_num_front_row; i++)
       {
-        int j = (i + g_test_index) % g_num_tubes;
+        int j = (i + g_test_index) % g_num_all_rows;
         sendOSC( i, g_test_colors[0][j], g_test_colors[1][j], g_test_colors[2][j]);
       }
       int k = 1;
-      for (int i = g_num_front_row; i < g_num_tubes; i++)
+      for (int i = g_num_front_row; i < g_num_all_rows; i++)
       {
-        int j = (i + g_test_index) % g_num_tubes;
-        sendOSC( g_num_tubes - k, g_test_colors[0][j], g_test_colors[1][j], g_test_colors[2][j]);
+        int j = (i + g_test_index) % g_num_all_rows;
+        sendOSC(g_num_all_rows - k, g_test_colors[0][j],
+                g_test_colors[1][j], g_test_colors[2][j]);
         k++;
       }
 
