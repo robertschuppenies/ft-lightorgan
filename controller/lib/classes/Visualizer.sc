@@ -220,7 +220,7 @@ FtloVisualizer : Object {
       arg pitchMag, i;
 
       this.organ.tubes[i].alpha = pitchMag;
-      this.organ.tubes[26 + i].alpha = pitchMag;
+      this.organ.tubes[min(26 + i, 50)].alpha = pitchMag;
     });
   }
 
