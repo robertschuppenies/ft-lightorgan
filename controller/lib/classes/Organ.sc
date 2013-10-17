@@ -93,7 +93,6 @@ FtloOrgan {
   }
 
   allLightsOff {
-    "Organ: All lights off!".postln();
     this.tubes.do({
       arg tube;
       tube.turn_off();
