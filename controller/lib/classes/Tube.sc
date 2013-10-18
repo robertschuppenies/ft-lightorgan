@@ -84,28 +84,25 @@ Tube {
       this.updateSent = false;
     });
     if ((this.alpha == 0) && (this.lastAlpha == 0), {
-	  // shortcut: If the tube was turned off last cycle and is still turned
-	  // off, no need to update.
+      // shortcut: If the tube was turned off last cycle and is still turned
+      // off, no need to update.
       this.updateSent = true;
     }, {
-	  this.lastAlpha = this.alpha;
-	  this.updateSent = false;
-	});
+      this.lastAlpha = this.alpha;
+      this.updateSent = false;
+    });
 
     if (this.updateSent == false, {
-	  this.color.alpha = this.alpha;
-	  this.updateSent = true;
+      this.color.alpha = this.alpha;
+      this.updateSent = true;
       ^this.color;
     }, {
       ^nil;
     });
   }
 
-  turn_off {
+  // Turn this tube off.
+  turnOff {
     this.alpha = 0.0;
-  }
-
-  is_on {
-    ^(this.alpha != 0);
   }
 }

@@ -7,7 +7,6 @@ FtloOrgan {
   <messagePauseTime = 0.04;
 
   var <> connectors,
-  <>brightnessTestIsOn,
   // A mapping of controller LED index/array position to physical LED
   // index. Due to how LEDs are physically wired the first LED on the board is
   // not indexed as 0. Instead, physical LED indexing starts at the
@@ -32,7 +31,8 @@ FtloOrgan {
   <>sleepModeAnimator,
   <>sleepModeRunning,
   <>tubes,
-  <>updater;
+  <>updater,
+  <>updaterRunning;
 
   *new {
     arg connectors;
@@ -43,26 +43,23 @@ FtloOrgan {
     arg connectors;
     var tube;
 
+    this.connectors = connectors;
+    this.sleepModeRunning = false;
+    this.updaterRunning = false;
     this.physicalTubeIndex = [ 8, 7, 6, 5, 4, 3, 2, 1, 0, 50, 49, 48, 47, 46,
       45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 9, 10, 11, 12, 13, 14,
       15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
       33 ];
-
-    this.connectors = connectors;
     this.tubes = [];
     for(0, 50, {
       arg i;
       this.tubes = this.tubes.add(Tube());
     });
-
     this.updater = Routine.new({
       while({true}, {
         this.pushUpdate();
       })
     });
-
-    this.brightnessTestIsOn = false;
-    this.sleepModeRunning = false;
   }
 
   // Push an update to the organ. This function will query all tubes for their
@@ -88,23 +85,29 @@ FtloOrgan {
     messagePauseTime.wait();
   }
 
-  start_updating {
+  // Start continuous update cycle.
+  startUpdating {
     SystemClock.play(this.updater);
+    this.updaterRunning = true;
   }
 
-  allLightsOff {
+  // Turn all lights off.
+  turnOff {
     this.tubes.do({
       arg tube;
-      tube.turn_off();
+      tube.turnOff();
     });
-    this.pushUpdate();
+    // Only explicitly update if the updater is not runing.
+    if (this.updaterRunning == false, {
+      this.pushUpdate();
+    })
   }
 
   // Set the hue of all the tubes at once.
   //
   // Args:
   //   hue: A hue value in the range of [0,1].
-  set_tubes_hue {
+  setallTubeHues {
     arg hue;
     var color;
 
@@ -118,11 +121,11 @@ FtloOrgan {
     });
   }
 
-  startup_animation_duration {
+  getDemoDuration {
     ^10.0;
   }
 
-  do_startup_animation {
+  startDemo {
     var startupAnimationRunner;
 
     startupAnimationRunner = Routine({
@@ -134,69 +137,15 @@ FtloOrgan {
         this.tubes[i].color.green = 1;
         this.tubes[i].alpha = 0.8;
         this.pushUpdate();
-        (0.1 * this.startup_animation_duration() / 25.0).wait();
+        (0.1 * this.getDemoDuration() / 25.0).wait();
       });
-      this.allLightsOff();
+      this.turnOff();
     });
     SystemClock.play(startupAnimationRunner);
   }
 
-  /*doPositionTest {
-    var lightPositionEnv,
-      numSideTubes = 5,
-      centerTubeIndex,
-      leftTubeIndex,
-      rightTubeIndex,
-      tubeSpan = numSideTubes * 2,
-      offset = 0.0;
-
-    lightPositionEnv = Env(
-      [0,   1,    0],
-      [ 0.5,  0.5],
-      \sin
-    );
-
-    centerTubeIndex = 10;
-
-    // animate to the left
-    {
-      while({true}, {
-
-        offset = offset + 0.009;
-        lightPositionEnv.offset = offset;
-
-        // once offset is an entire tube length, we can reset the center
-        if (offset >= (1.0/tubeSpan), {
-          offset = 0.0;
-          centerTubeIndex = centerTubeIndex + 1;
-        });
-
-        leftTubeIndex = centerTubeIndex - numSideTubes;
-        rightTubeIndex = centerTubeIndex + numSideTubes;
-        for(leftTubeIndex, rightTubeIndex, {
-          arg i;
-
-          var relativeTubePosition;
-
-          relativeTubePosition = (i - leftTubeIndex) / tubeSpan;
-
-          this.tubes[i].color.red = lightPositionEnv.at(relativeTubePosition);
-          this.tubes[i].color.green = lightPositionEnv.at(relativeTubePosition);
-          this.tubes[i].color.blue = lightPositionEnv.at(relativeTubePosition);
-          this.tubes[i].update();
-
-          0.02.wait();
-
-        });
-
-      });
-
-
-    }.loop();
-
-
-  }*/
-
+  // TODO(schuppe): figure out what to do with sleep mode; currently it is not
+  // used.
   start_sleep_mode {
     var brightnessCycle,
       brightnessStream,
@@ -225,7 +174,7 @@ FtloOrgan {
     this.sleepModeAnimator = Routine.new({
       brightnessStream = brightnessCycle.asStream();
       t = 0;
-      this.set_tubes_hue(0.999.rand());
+      this.setallTubeHues(0.999.rand());
 
       while({ t <= duration }, {
         brightness = brightnessStream.next();
@@ -248,62 +197,6 @@ FtloOrgan {
   stop_sleep_mode {
     this.sleepModeAnimator.stop();
     this.sleepModeRunning = false;
-  }
-
-  doTubeIndexTest {
-    var i, ledName, led;
-
-    "tubeIndexTest!".postln();
-
-    {
-      i = 0;
-      while({ i < this.tubes.size() }, {
-        led = this.tubes[i].color.red = 1.0;
-        this.pushUpdate();
-        i = i + 1;
-      });
-    }.loop();
-
-  }
-
-  doBrightnessTest {
-    arg testDuration;
-
-    {
-      this.startBrightnessTest(testDuration);
-    }.fork();
-
-    testDuration.wait();
-
-    this.stopBrightnessTest();
-  }
-
-  startBrightnessTest {
-    arg testDuration;
-    var sineEnv, sineVal;
-
-    sineEnv = Env.sine(testDuration).asStream();
-
-    this.brightnessTestIsOn = true;
-
-    while ({ brightnessTestIsOn }, {
-      sineVal = sineEnv.next();
-
-      this.tubes.do({
-        arg tube;
-
-        tube.color.red = sineVal;
-        tube.color.green = sineVal;
-        tube.color.blue = sineVal;
-        this.sentUpdate();
-      });
-
-      0.025.wait();
-    })
-  }
-
-  stopBrightnessTest {
-    this.brightnessTestIsOn = false;
   }
 
 }

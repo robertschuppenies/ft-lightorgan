@@ -11,17 +11,17 @@ if (argument_parser.parse() != True, {
   s.options.memSize = argument_parser.memsize;
 
   s.doWhenBooted({
-	var arduino, organ, visualizer;
+    var arduino, organ, visualizer;
 
-	organ = FtloOrgan(argument_parser.connectors);
-	visualizer = FtloVisualizer.new((organ: organ));
+    organ = FtloOrgan(argument_parser.connectors);
+    visualizer = FtloVisualizer.new((organ: organ));
 
-	organ.start_updating();
-	organ.allLightsOff();
-	"startup animation triggered ..".post();
-	organ.do_startup_animation();
-	organ.startup_animation_duration().wait();
-	organ.allLightsOff();
+    organ.startUpdating();
+    organ.turnOff();
+    "startup animation triggered ..".post();
+    organ.startDemo();
+	organ.getDemoDuration().wait();
+	organ.turnOff();
 	" and completed. Running visualizer now.".postln();
 	visualizer.start_visualizer();
   });

@@ -192,7 +192,7 @@ FtloVisualizer : Object {
   handle_hue_modulation {
     arg hue;
     //"handle_hue_modulation".postln();
-    this.organ.set_tubes_hue(hue);
+    this.organ.setallTubeHues(hue);
   }
 
   /**
